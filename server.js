@@ -1,84 +1,44 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const cookieParser = require('cookie-parser'); // Make sure to import cookie-parser
-const { MongoClient } = require('mongodb'); // Importing MongoClient here
-require('dotenv').config(); // Load environment variables from .env
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.set("port", PORT);
-
-const corsOptions = {
-    origin: [
-        "http://localhost:5173",
-        "http://www.tracktion.fun/",
-        "https://www.trakction.fun/",
-    ],
-    credentials: true, // Access-Control-Allow-Credentials: true
-    optionSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(bodyParser.json());
-app.use(cookieParser());
 
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-    next();
-});
 
-const url = process.env.MONGODB_URI;
+require('dotenv').config();
+const url = process.env.MONGODB_URL;
+const MongoClient = require('mongodb').MongoClient;
 const client = new MongoClient(url);
+client.connect();
 
-async function connectDB() {
-    try {
-        await client.connect();
-        console.log('Connected to MongoDB');
-    } catch (e) {
-        console.error('Error connecting to MongoDB:', e);
-    }
-}
 
-connectDB();
+app.post('/api/login', async (req, res, next) => 
+{
+  // incoming: login, password
+  // outgoing: id, firstName, lastName, error
+	
+ var error = '';
 
-app.post('/api/addcard', async (req, res, next) => {
-    const { userId, card } = req.body;
-    const newCard = { Card: card, UserId: userId };
-    let error = '';
+  const { login, password } = req.body;
 
-    try {
-        const db = client.db('LargeProject');
-        await db.collection('Cards').insertOne(newCard);
-    } catch (e) {
-        error = e.toString();
-    }
+  const db = client.db('LargeProject');
+  const results = await db.collection('users').find({Login:login,Password:password}).toArray();
 
-    var ret = { error: error };
-    res.status(200).json(ret);
-});
+  var id = -1;
+  var fn = '';
+  var ln = '';
 
-app.post('/api/login', async (req, res, next) => {
-    const { login, password } = req.body;
-    let error = '';
+  if( results.length > 0 )
+  {
+    id = results[0].UserId;
+    fn = results[0].FirstName;
+    ln = results[0].LastName;
+  }
 
-    const db = client.db('LargeProject');
-    const results = await db.collection('users').find({ Login: login, Password: password }).toArray();
-
-    let id = -1;
-    let fn = '';
-    let ln = '';
-
-    if (results.length > 0) {
-        id = results[0].UserID;
-        fn = results[0].FirstName;
-        ln = results[0].LastName;
-    }
-
-    var ret = { id: id, firstName: fn, lastName: ln, error: '' };
-    res.status(200).json(ret);
+  var ret = { id:id, firstName:fn, lastName:ln, error:''};
+  res.status(200).json(ret);
 });
 
 app.post('/api/register', async (req, res) => {
@@ -121,20 +81,18 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-app.post('/api/searchcards', async (req, res, next) => {
-    const { userId, search } = req.body;
-    const _search = search.trim();
-    let error = '';
-
-    const db = client.db('LargeProject');
-    const results = await db.collection('Cards').find({ "Card": { $regex: _search + '.*', $options: 'i' } }).toArray();
-
-    const _ret = results.map(result => result.Card); // Use map to simplify the code
-
-    var ret = { results: _ret, error: error };
-    res.status(200).json(ret);
+app.use((req, res, next) => 
+{
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PATCH, DELETE, OPTIONS'
+  );
+  next();
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+app.listen(5000); // start Node + Express server on port 5000
