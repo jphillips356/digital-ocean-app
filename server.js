@@ -1,23 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const cookieParser = require('cookie-parser'); // Make sure to import cookie-parser
+const { MongoClient } = require('mongodb'); // Importing MongoClient here
+require('dotenv').config(); // Load environment variables from .env
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-//const app = express();
-
 app.set("port", PORT);
 
 const corsOptions = {
-	origin: [
-		"http://localhost:5173",
-		"http://www.tracktion.fun/",
-		"https://www.trakction.fun/",
-		//"https://dev-fusion-production-65209ae3025b.herokuapp.com/",
-	],
-	credentials: true, //access-control-allow-credentials:true
-	optionSuccessStatus: 200,
+    origin: [
+        "http://localhost:5173",
+        "http://www.tracktion.fun/",
+        "https://www.trakction.fun/",
+    ],
+    credentials: true, // Access-Control-Allow-Credentials: true
+    optionSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -25,127 +25,116 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-	// res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-	// res.setHeader("Access-Control-Allow-Credentials", "true");
-	res.setHeader(
-		"Access-Control-Allow-Headers",
-		"Origin, X-Requested-With, Content-Type, Accept, Authorization"
-	);
-	res.setHeader(
-		"Access-Control-Allow-Methods",
-		"GET, POST, PATCH, DELETE, OPTIONS"
-	);
-	next();
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    next();
 });
 
 const url = process.env.MONGODB_URI;
-const MongoClient = require("mongodb").MongoClient;
-var client;
-try {
-	client = new MongoClient(url);
-	client.connect;
-} catch (e) {
-	console.error(e);
+const client = new MongoClient(url);
+
+async function connectDB() {
+    try {
+        await client.connect();
+        console.log('Connected to MongoDB');
+    } catch (e) {
+        console.error('Error connecting to MongoDB:', e);
+    }
 }
 
+connectDB();
 
+app.post('/api/addcard', async (req, res, next) => {
+    const { userId, card } = req.body;
+    const newCard = { Card: card, UserId: userId };
+    let error = '';
 
-require('dotenv').config();
-const MongoClient = require('mongodb').MongoClient;
-//const url = 'mongodb+srv://jishdotcom:COP4331@cluster0.rqrdj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0;'
+    try {
+        const db = client.db('LargeProject');
+        await db.collection('Cards').insertOne(newCard);
+    } catch (e) {
+        error = e.toString();
+    }
 
-const client = new MongoClient(url);
-client.connect();
+    var ret = { error: error };
+    res.status(200).json(ret);
+});
 
-app.post('/api/addcard', async (req, res, next) =>
-{
-  // incoming: userId, color
-  // outgoing: error
-	
-  const { userId, card } = req.body;
+app.post('/api/login', async (req, res, next) => {
+    const { login, password } = req.body;
+    let error = '';
 
-  const newCard = {Card:card,UserId:userId};
-  var error = '';
-
-  try
-  {
     const db = client.db('LargeProject');
-    const result = db.collection('Cards').insertOne(newCard);
-  }
-  catch(e)
-  {
-    error = e.toString();
-  }
+    const results = await db.collection('users').find({ Login: login, Password: password }).toArray();
 
-  cardList.push( card );
+    let id = -1;
+    let fn = '';
+    let ln = '';
 
-  var ret = { error: error };
-  res.status(200).json(ret);
+    if (results.length > 0) {
+        id = results[0].UserID;
+        fn = results[0].FirstName;
+        ln = results[0].LastName;
+    }
+
+    var ret = { id: id, firstName: fn, lastName: ln, error: '' };
+    res.status(200).json(ret);
 });
 
-app.post('/api/login', async (req, res, next) => 
-{
-  // incoming: login, password
-  // outgoing: id, firstName, lastName, error
-	
- var error = '';
+app.post('/api/register', async (req, res) => {
+  let error = '';
 
-  const { login, password } = req.body;
+  // Destructure the incoming request
+  const { login, password, firstName, lastName } = req.body;
 
-  const db = client.db('LargeProject');
-  const results = await db.collection('users').find({Login:login,Password:password}).toArray();
+  try {
+    const db = client.db('LargeProject');
+    const usersCollection = db.collection('users');
 
-  var id = -1;
-  var fn = '';
-  var ln = '';
+    // Check if the login already exists
+    const existingUser = await usersCollection.findOne({ Login: login });
+    if (existingUser) {
+      error = 'Username already taken';
+      return res.status(400).json({ success: false, error });
+    }
 
-  if( results.length > 0 )
-  {
-    id = results[0].UserID;
-    fn = results[0].FirstName;
-    ln = results[0].LastName;
+    // Generate a new UserID (assuming it’s the next sequential ID)
+    const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
+    const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
+
+    // Insert the new user
+    const newUser = {
+      Login: login,
+      Password: password, // Note: Hashing is recommended here for security.
+      FirstName: firstName,
+      LastName: lastName,
+      UserID: newUserID
+    };
+    await usersCollection.insertOne(newUser);
+
+    // Respond with success message
+    res.status(201).json({ success: true, error: '' });
+  } catch (e) {
+    console.error(e);
+    error = 'An error occurred during registration';
+    res.status(500).json({ success: false, error });
   }
-
-  var ret = { id:id, firstName:fn, lastName:ln, error:''};
-  res.status(200).json(ret);
 });
 
-app.post('/api/searchcards', async (req, res, next) => 
-{
-  // incoming: userId, search
-  // outgoing: results[], error
+app.post('/api/searchcards', async (req, res, next) => {
+    const { userId, search } = req.body;
+    const _search = search.trim();
+    let error = '';
 
-  var error = '';
+    const db = client.db('LargeProject');
+    const results = await db.collection('Cards').find({ "Card": { $regex: _search + '.*', $options: 'i' } }).toArray();
 
-  const { userId, search } = req.body;
+    const _ret = results.map(result => result.Card); // Use map to simplify the code
 
-  var _search = search.trim();
-  
-  const db = client.db('LargeProject');
-  const results = await db.collection('Cards').find({"Card":{$regex:_search+'.*', $options:'i'}}).toArray();
-  
-  var _ret = [];
-  for( var i=0; i<results.length; i++ )
-  {
-    _ret.push( results[i].Card );
-  }
-  
-  var ret = {results:_ret, error:error};
-  res.status(200).json(ret);
+    var ret = { results: _ret, error: error };
+    res.status(200).json(ret);
 });
 
-app.use((req, res, next) => 
-{
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PATCH, DELETE, OPTIONS'
-  );
-  next();
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
-
-app.listen(5000); // start Node + Express server on port 5000
