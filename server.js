@@ -116,7 +116,7 @@ const client = new MongoClient(url);
 client.connect();
 
 app.get('/', (req, res) => {
-  res.send('Welcome to the card API!'); // Add this line
+  res.redirect('/api/login'); // Add this line
 });
 
 app.post('/api/addcard', async (req, res, next) =>
