@@ -119,6 +119,10 @@ app.get('/', (req, res) => {
   res.redirect('/api/login'); // Add this line
 });
 
+app.get('/api/login', (req, res) => {
+  res.send('This is the login endpoint. Please use POST to log in.'); // Customize this response as needed
+});
+
 app.post('/api/addcard', async (req, res, next) =>
 {
   // incoming: userId, color
