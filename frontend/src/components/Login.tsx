@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 function Login()
 {
 
-  const app_name = 'cop4331-3.com'
+  const app_name = 'whale-app-ambkm.ondigitalocean.app'
   function buildPath(route:string) : string
   {
       if (process.env.NODE_ENV != 'development') 
       {
-          return 'http://' + app_name +  ':5000/' + route;
+          return 'https://' + app_name +  ':8080/' + route;
       }
       else
       {        
