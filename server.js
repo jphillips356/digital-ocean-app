@@ -115,6 +115,10 @@ const MongoClient = require('mongodb').MongoClient;
 const client = new MongoClient(url);
 client.connect();
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the card API!'); // Add this line
+});
+
 app.post('/api/addcard', async (req, res, next) =>
 {
   // incoming: userId, color
