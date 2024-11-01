@@ -115,9 +115,9 @@ const MongoClient = require('mongodb').MongoClient;
 const client = new MongoClient(url);
 client.connect();
 
-app.get('/', (req, res) => {
-  res.redirect('/api/login'); // Add this line
-});
+// app.get('/', (req, res) => {
+//   res.redirect('/api/login'); // Add this line
+// });
 
 
 app.post('/api/addcard', async (req, res, next) =>
