@@ -6,6 +6,108 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+var cardList = 
+[
+  'Roy Campanella',
+  'Paul Molitor',
+  'Tony Gwynn',
+  'Dennis Eckersley',
+  'Reggie Jackson',
+  'Gaylord Perry',
+  'Buck Leonard',
+  'Rollie Fingers',
+  'Charlie Gehringer',
+  'Wade Boggs',
+  'Carl Hubbell',
+  'Dave Winfield',
+  'Jackie Robinson',
+  'Ken Griffey, Jr.',
+  'Al Simmons',
+  'Chuck Klein',
+  'Mel Ott',
+  'Mark McGwire',
+  'Nolan Ryan',
+  'Ralph Kiner',
+  'Yogi Berra',
+  'Goose Goslin',
+  'Greg Maddux',
+  'Frankie Frisch',
+  'Ernie Banks',
+  'Ozzie Smith',
+  'Hank Greenberg',
+  'Kirby Puckett',
+  'Bob Feller',
+  'Dizzy Dean',
+  'Joe Jackson',
+  'Sam Crawford',
+  'Barry Bonds',
+  'Duke Snider',
+  'George Sisler',
+  'Ed Walsh',
+  'Tom Seaver',
+  'Willie Stargell',
+  'Bob Gibson',
+  'Brooks Robinson',
+  'Steve Carlton',
+  'Joe Medwick',
+  'Nap Lajoie',
+  'Cal Ripken, Jr.',
+  'Mike Schmidt',
+  'Eddie Murray',
+  'Tris Speaker',
+  'Al Kaline',
+  'Sandy Koufax',
+  'Willie Keeler',
+  'Pete Rose',
+  'Robin Roberts',
+  'Eddie Collins',
+  'Lefty Gomez',
+  'Lefty Grove',
+  'Carl Yastrzemski',
+  'Frank Robinson',
+  'Juan Marichal',
+  'Warren Spahn',
+  'Pie Traynor',
+  'Roberto Clemente',
+  'Harmon Killebrew',
+  'Satchel Paige',
+  'Eddie Plank',
+  'Josh Gibson',
+  'Oscar Charleston',
+  'Mickey Mantle',
+  'Cool Papa Bell',
+  'Johnny Bench',
+  'Mickey Cochrane',
+  'Jimmie Foxx',
+  'Jim Palmer',
+  'Cy Young',
+  'Eddie Mathews',
+  'Honus Wagner',
+  'Paul Waner',
+  'Grover Alexander',
+  'Rod Carew',
+  'Joe DiMaggio',
+  'Joe Morgan',
+  'Stan Musial',
+  'Bill Terry',
+  'Rogers Hornsby',
+  'Lou Brock',
+  'Ted Williams',
+  'Bill Dickey',
+  'Christy Mathewson',
+  'Willie McCovey',
+  'Lou Gehrig',
+  'George Brett',
+  'Hank Aaron',
+  'Harry Heilmann',
+  'Walter Johnson',
+  'Roger Clemens',
+  'Ty Cobb',
+  'Whitey Ford',
+  'Willie Mays',
+  'Rickey Henderson',
+  'Babe Ruth'
+];
 
 require('dotenv').config();
 const url = process.env.MONGODB_URL;
@@ -13,6 +115,31 @@ const MongoClient = require('mongodb').MongoClient;
 const client = new MongoClient(url);
 client.connect();
 
+app.post('/api/addcard', async (req, res, next) =>
+{
+  // incoming: userId, color
+  // outgoing: error
+	
+  const { userId, card } = req.body;
+
+  const newCard = {Card:card,UserId:userId};
+  var error = '';
+
+  try
+  {
+    const db = client.db('LargeProject');
+    const result = db.collection('Cards').insertOne(newCard);
+  }
+  catch(e)
+  {
+    error = e.toString();
+  }
+
+  cardList.push( card );
+
+  var ret = { error: error };
+  res.status(200).json(ret);
+});
 
 app.post('/api/login', async (req, res, next) => 
 {
@@ -32,7 +159,7 @@ app.post('/api/login', async (req, res, next) =>
 
   if( results.length > 0 )
   {
-    id = results[0].UserId;
+    id = results[0].UserID;
     fn = results[0].FirstName;
     ln = results[0].LastName;
   }
@@ -41,44 +168,28 @@ app.post('/api/login', async (req, res, next) =>
   res.status(200).json(ret);
 });
 
-app.post('/api/register', async (req, res) => {
-  let error = '';
+app.post('/api/searchcards', async (req, res, next) => 
+{
+  // incoming: userId, search
+  // outgoing: results[], error
 
-  // Destructure the incoming request
-  const { login, password, firstName, lastName } = req.body;
+  var error = '';
 
-  try {
-    const db = client.db('LargeProject');
-    const usersCollection = db.collection('users');
+  const { userId, search } = req.body;
 
-    // Check if the login already exists
-    const existingUser = await usersCollection.findOne({ Login: login });
-    if (existingUser) {
-      error = 'Username already taken';
-      return res.status(400).json({ success: false, error });
-    }
-
-    // Generate a new UserID (assuming it’s the next sequential ID)
-    const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
-    const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
-
-    // Insert the new user
-    const newUser = {
-      Login: login,
-      Password: password, // Note: Hashing is recommended here for security.
-      FirstName: firstName,
-      LastName: lastName,
-      UserID: newUserID
-    };
-    await usersCollection.insertOne(newUser);
-
-    // Respond with success message
-    res.status(201).json({ success: true, error: '' });
-  } catch (e) {
-    console.error(e);
-    error = 'An error occurred during registration';
-    res.status(500).json({ success: false, error });
+  var _search = search.trim();
+  
+  const db = client.db('COP4331Cards');
+  const results = await db.collection('Cards').find({"Card":{$regex:_search+'.*', $options:'i'}}).toArray();
+  
+  var _ret = [];
+  for( var i=0; i<results.length; i++ )
+  {
+    _ret.push( results[i].Card );
   }
+  
+  var ret = {results:_ret, error:error};
+  res.status(200).json(ret);
 });
 
 app.use((req, res, next) => 

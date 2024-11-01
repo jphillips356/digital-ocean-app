@@ -3,17 +3,17 @@ import React, { useState } from 'react';
 function CardUI()
 {
 
-    const app_name = 'tracktion.fun';
+    const app_name = 'cop4331-3.com'
     function buildPath(route:string) : string
     {
-      if (process.env.NODE_ENV != 'development')
-      {
-        return 'http://' + app_name + ':5000/' + route;
-      }
-      else
-      {
-        return 'http://localhost:5000/' + route;
-      }
+        if (process.env.NODE_ENV != 'development') 
+        {
+            return 'http://' + app_name +  ':5000/' + route;
+        }
+        else
+        {        
+            return 'http://localhost:5000/' + route;
+        }
     }
   
     let _ud : any = localStorage.getItem('user_data');
