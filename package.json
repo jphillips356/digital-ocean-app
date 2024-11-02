@@ -1,30 +1,19 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Server for Tracktion app",
+  "description": "",
   "main": "server.js",
   "scripts": {
-      "start": "node server.js",
-      "dev": "nodemon server.js",
-      "build": "vite build",
-      "serve": "vite preview"
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "nodemon server.js"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
       "body-parser": "^1.20.3",
       "cors": "^2.8.5",
       "dotenv": "^16.4.5",
-      "express": "^4.21.1",
-      "mongodb": "^4.17.2",
-      "react-router-dom": "^6.27.0",
-      "vite": "^4.0.0"
-  },
-  "devDependencies": {
-      "nodemon": "^2.0.22"
-  },
-  "engines": {
-      "node": ">=14"
-  },
-  "keywords": [],
-  "author": "Joshua Phillips",
-  "license": "ISC"
+      "express": "^4.21.0",
+      "mongodb": "^5.9.2"
+  }
 }
