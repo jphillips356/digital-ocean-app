@@ -12,6 +12,7 @@ const port = 8080;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // MongoDB connection
 // const url = process.env.MONGODB_URL;
@@ -79,6 +80,11 @@ app.post('/api/register', async (req, res) => {
         res.status(500).json({ success: false, error });
     }
 });
+
+// Serve index.html for the root route 
+app.get('/', (req, res) => { 
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  });
 
 // Start server
 app.listen(port, () => {
