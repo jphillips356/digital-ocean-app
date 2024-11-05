@@ -21,8 +21,8 @@ app.get('*', (req, res) => {
 });
 
 // MongoDB connection
-// const url = process.env.MONGODB_URL;
-const url = 'mongodb+srv://jishdotcom:COP4331@cluster0.rqrdj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0;';
+const url = process.env.MONGODB_URL;
+//const url = 'mongodb+srv://jishdotcom:COP4331IsCool@cluster0.rqrdj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 client.connect(err => {
@@ -52,6 +52,7 @@ app.post('/api/login', async (req, res, next) => {
     var ret = { id: id, firstName: fn, lastName: ln, error: '' };
     res.status(200).json(ret);
 });
+
 
 app.post('/api/register', async (req, res) => {
     let error = '';
