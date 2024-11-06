@@ -33,46 +33,31 @@ client.connect(err => {
     console.log("MongoDB connected successfully");
 });
 
-const bcrypt = require('bcrypt'); // Ensure bcrypt is required at the top
-
-app.post('/api/login', async (req, res, next) => {
-    // incoming: login, password
-    // outgoing: id, firstName, lastName, error
+app.post('/api/login', async (req, res, next) => 
+    {
+      // incoming: login, password
+      // outgoing: id, firstName, lastName, error
+        
+     var error = '';
     
-    const { login, password } = req.body;
-    let error = '';
-
-    try {
-        const db = client.db('LargeProject');
-
-        // Find the user by login
-        const user = await db.collection('users').findOne({ Login: login });
-
-        // Check if the user exists
-        if (!user) {
-            error = "No account exists with that username.";
-            return res.status(404).json({ id: -1, firstName: "", lastName: "", error });
-        }
-
-        // Compare the password with the stored hash
-        const match = await bcrypt.compare(password, user.Password);
-
-        if (!match) {
-            error = "Password does not match.";
-            return res.status(401).json({ id: -1, firstName: "", lastName: "", error });
-        }
-
-        // If login is successful, prepare the response
-        const id = user.UserID;
-        const fn = user.FirstName;
-        const ln = user.LastName;
-
-        return res.status(200).json({ id, firstName: fn, lastName: ln, error: "" });
-    } catch (err) {
-        console.error(err);
-        error = "An error occurred during login.";
-        return res.status(500).json({ id: -1, firstName: "", lastName: "", error });
-    }
+      const { login, password } = req.body;
+    
+      const db = client.db('LargeProject');
+      const results = await db.collection('users').find({Login:login,Password:password}).toArray();
+    
+      var id = -1;
+      var fn = '';
+      var ln = '';
+    
+      if( results.length > 0 )
+      {
+        id = results[0].UserID;
+        fn = results[0].FirstName;
+        ln = results[0].LastName;
+      }
+    
+      var ret = { id:id, firstName:fn, lastName:ln, error:''};
+      res.status(200).json(ret);
 });
 
 
