@@ -33,31 +33,61 @@ client.connect(err => {
     console.log("MongoDB connected successfully");
 });
 
-app.post('/api/login', async (req, res, next) => 
-    {
-      // incoming: login, password
-      // outgoing: id, firstName, lastName, error
+// app.post('/api/login', async (req, res, next) => 
+//     {
+//       // incoming: login, password
+//       // outgoing: id, firstName, lastName, error
         
-     var error = '';
+//      var error = '';
     
-      const { login, password } = req.body;
+//       const { login, password } = req.body;
     
-      const db = client.db('LargeProject');
-      const results = await db.collection('users').find({Login:login,Password:password}).toArray();
+//       const db = client.db('LargeProject');
+//       const results = await db.collection('users').find({Login:login,Password:password}).toArray();
     
-      var id = -1;
-      var fn = '';
-      var ln = '';
+//       var id = -1;
+//       var fn = '';
+//       var ln = '';
     
-      if( results.length > 0 )
-      {
-        id = results[0].UserID;
-        fn = results[0].FirstName;
-        ln = results[0].LastName;
-      }
+//       if( results.length > 0 )
+//       {
+//         id = results[0].UserID;
+//         fn = results[0].FirstName;
+//         ln = results[0].LastName;
+//       }
     
-      var ret = { id:id, firstName:fn, lastName:ln, error:''};
-      res.status(200).json(ret);
+//       var ret = { id:id, firstName:fn, lastName:ln, error:''};
+//       res.status(200).json(ret);
+// });
+
+app.post('/api/login', async (req, res) => {
+    // Incoming: login, password
+    const { login, password } = req.body;
+
+    try {
+        const db = client.db('LargeProject');
+        
+        // Check if user exists by login
+        const user = await db.collection('users').findOne({ Login: login });
+
+        if (!user) {
+            // User not found
+            return res.status(404).json({ id: -1, firstName: '', lastName: '', error: 'User not found' });
+        }
+
+        // Check if password matches
+        if (user.Password !== password) {
+            // Password does not match
+            return res.status(401).json({ id: -1, firstName: '', lastName: '', error: 'Incorrect password' });
+        }
+
+        // Successful login
+        const { UserID, FirstName, LastName } = user;
+        res.status(200).json({ id: UserID, firstName: FirstName, lastName: LastName, error: '' });
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ id: -1, firstName: '', lastName: '', error: 'An error occurred' });
+    }
 });
 
 
