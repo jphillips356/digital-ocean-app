@@ -119,7 +119,7 @@ require('dotenv').config();
 
 // Initialize Express app
 const app = express();
-const port = 5173;
+const port = 8080;
 
 // Middleware
 app.use(cors());
