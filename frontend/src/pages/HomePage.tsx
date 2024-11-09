@@ -1,14 +1,14 @@
-// src/pages/HomePage.tsx
-//import React from 'react';
+// homepage.tsx
+import React from "react";
+import Home from "../components/Home";
 
-function HomePage() {
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Welcome to the Home Page</h1>
-      <p>You have successfully logged in!</p>
-      {/* Add more content here as needed */}
-    </div>
-  );
-}
+const Homepage: React.FC = () => {
+    return (
+        <div style={{ padding: "1rem" }}>
+            <h1>Welcome to the Habit Tracker</h1>
+            <Home />
+        </div>
+    );
+};
 
-export default HomePage;
+export default Homepage;

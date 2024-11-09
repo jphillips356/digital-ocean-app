@@ -9,8 +9,8 @@ require('dotenv').config();
 // Initialize Express app
 const app = express();
 
-const port = 8080;
-//const port = 5000;
+//const port = 8080;
+const port = 5000;
 
 
 // Middleware
@@ -116,6 +116,84 @@ app.post('/api/register', async (req, res) => {
         res.status(500).json({ success: false, error });
     }
 });
+
+// Create a new habit
+app.post('/api/habits', async (req, res) => {
+    const { name, measurementType } = req.body;
+    if (!name || !measurementType) {
+        return res.status(400).json({ error: "Name and measurement type are required" });
+    }
+
+    const habit = { name, measurementType };
+    try {
+        const db = client.db('LargeProject');
+        const habitsCollection = db.collection('habits');
+        const result = await habitsCollection.insertOne(habit);
+        res.status(201).json({ success: true, habitId: result.insertedId });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: "Could not create habit" });
+    }
+});
+
+// Get all habits
+app.get('/api/habits', async (req, res) => {
+    try {
+        const db = client.db('LargeProject');
+        const habitsCollection = db.collection('habits');
+        const habits = await habitsCollection.find().toArray();
+        res.status(200).json(habits);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Could not retrieve habits" });
+    }
+});
+
+// Update a habit by ID
+app.put('/api/habits/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, measurementType } = req.body;
+
+    try {
+        const db = client.db('LargeProject');
+        const habitsCollection = db.collection('habits');
+        const result = await habitsCollection.updateOne(
+            { _id: new MongoClient.ObjectId(id) },
+            { $set: { name, measurementType } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: "Habit not found" });
+        }
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Could not update habit" });
+    }
+});
+
+// Delete a habit by ID
+app.delete('/api/habits/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const db = client.db('LargeProject');
+        const habitsCollection = db.collection('habits');
+        const result = await habitsCollection.deleteOne({ _id: new MongoClient.ObjectId(id) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: "Habit not found" });
+        }
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Could not delete habit" });
+    }
+});
+
+
 
 // Serve index.html for the root route 
 app.get('/', (req, res) => { 
