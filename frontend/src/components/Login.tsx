@@ -14,11 +14,21 @@ function Login() {
   // Handle form submission for login
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
+    function buildPath(route:string) : string
+    {
+      if (process.env.NODE_ENV != 'development')
+      {
+        return 'https://whale-app-ambkm.ondigitalocean.app/' + route;
+      }
+      else
+      {
+        return 'http://localhost:5000/' + route;
+      }
+    }
     const user = { login, password }; // Construct the user object for login
 
     try {
-      const response = await fetch('/api/login', { // Make a request to login API
+      const response = await fetch(buildPath('/api/login'), { // Make a request to login API
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),
@@ -141,25 +151,6 @@ export default Login;
 //   const [message, setMessage] = useState(''); // Message to display feedback (success or error)
 
 //   const navigate = useNavigate(); // Initialize the useNavigate hook
-//   // function buildPath(route:string) : string
-//   // {
-//   //     if (process.env.NODE_ENV != 'development') 
-//   //     {
-//   //         return 'https://whale-app-ambkm.ondigitalocean.app:8080/' + route;
-//   //     }
-//   //     else
-//   //     {        
-//   //         return 'http://localhost:8080/' + route;
-//   //     }
-//   // }
-
-//   function buildPath(route: string): string {
-//     if (import.meta.env.MODE !== 'development') {
-//         return 'https://whale-app-ambkm.ondigitalocean.app:8080/' + route;
-//     } else {
-//         return 'http://localhost:5173/' + route;
-//     }
-// }
 
 //   // Handle form submission for login
 //   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
@@ -168,7 +159,7 @@ export default Login;
 //     const user = { login, password }; // Construct the user object for login
 
 //     try {
-//       const response = await fetch(buildPath('/api/login'), { // Make a request to login API
+//       const response = await fetch('/api/login', { // Make a request to login API
 //         method: 'POST',
 //         headers: { 'Content-Type': 'application/json' },
 //         body: JSON.stringify(user),
