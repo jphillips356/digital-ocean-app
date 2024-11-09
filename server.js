@@ -117,14 +117,14 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Create a new habit
 app.post('/api/habits', async (req, res) => {
-    const { name, measurementType } = req.body;
-    if (!name || !measurementType) {
-        return res.status(400).json({ error: "Name and measurement type are required" });
+    const { name, measurementType, measurementUnit, frequency } = req.body;
+
+    if (!name || !measurementType || !measurementUnit || !frequency) {
+        return res.status(400).json({ error: "All fields are required" });
     }
 
-    const habit = { name, measurementType };
+    const habit = { name, measurementType, measurementUnit, frequency };
     try {
         const db = client.db('LargeProject');
         const habitsCollection = db.collection('habits');
@@ -135,6 +135,8 @@ app.post('/api/habits', async (req, res) => {
         res.status(500).json({ success: false, error: "Could not create habit" });
     }
 });
+
+
 
 // Get all habits
 app.get('/api/habits', async (req, res) => {
