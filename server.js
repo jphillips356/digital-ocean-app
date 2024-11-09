@@ -9,10 +9,8 @@ require('dotenv').config();
 // Initialize Express app
 const app = express();
 
-let port = 8080;
-if(process.env.NODE_ENV === "development"){
-    port = 5000;
-}
+const port = 8080;
+//const port = 5000;
 
 
 // Middleware
