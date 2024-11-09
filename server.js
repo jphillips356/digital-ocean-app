@@ -8,8 +8,12 @@ require('dotenv').config();
 
 // Initialize Express app
 const app = express();
-const port = 5000;
-//const port = 8080;
+
+let port = 8080;
+if(process.env.NODE_ENV === "development"){
+    port = 5000;
+}
+
 
 // Middleware
 app.use(cors({
