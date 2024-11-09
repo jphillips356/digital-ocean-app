@@ -11,15 +11,17 @@ function Login() {
 
     const navigate = useNavigate(); // Initialize the useNavigate hook
 
+    function buildPath(route: string): string {
+      return process.env.NODE_ENV === "development"
+          ? `http://localhost:5000${route}`
+          : route;
+    }
+
     // Handle form submission for login
     async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        function buildPath(route: string): string {
-            return process.env.NODE_ENV === "development"
-                ? `http://localhost:5000${route}`
-                : route;
-        }
+
 
         const user = { login, password }; // Construct the user object for login
         console.log(user);
@@ -47,11 +49,7 @@ function Login() {
     // Handle form submission for registration
     async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        function buildPath(route: string): string {
-          return process.env.NODE_ENV === "development"
-              ? `http://localhost:5000${route}`
-              : route;
-        }
+
         const newUser = { login, password, firstName, lastName }; // Construct the user object for registration
 
         try {
@@ -59,7 +57,6 @@ function Login() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newUser),
-                credentials: "include",
             });
 
             const data = await response.json();
