@@ -1,9 +1,13 @@
 //import React from 'react';
 import Login from '../components/Login';
+import '../Login.css';
+import ResponsiveAppBar from '../AppBar';
 
 const LoginPage = () => (
-  <div>
+  <div className="login-page">
+    <ResponsiveAppBar></ResponsiveAppBar>
     <Login />
+   
   </div>
 );
 
