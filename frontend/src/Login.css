@@ -5,17 +5,13 @@ body {
     color: #333; /* Default text color */
     margin: 0;
     padding: 0;
-    height: 100vh; /* Full viewport height */
-    display: flex;
+   /* Full viewport height */
     justify-content: center; /* Center the content horizontally */
     align-items: center; /* Center the content vertically */
 }
 
 /* Style for the root container */
 #root {
-    width: 100%;
-    max-width: 800px;
-    padding: 2rem;
     background-color: #fff; /* White background for the main content */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
     border-radius: 8px;

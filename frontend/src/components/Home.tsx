@@ -1,449 +1,280 @@
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
+import { MoreVertical, PenLine, Search, X } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
-// import React, { useState, useEffect } from "react";
-
-// function Home() {
-//     const [habits, setHabits] = useState([]);
-//     const [habitName, setHabitName] = useState("");
-//     const [measurementType, setMeasurementType] = useState("");
-//     const [measurementUnit, setMeasurementUnit] = useState("");
-//     const [frequency, setFrequency] = useState(""); // New state for frequency
-//     const [targetCount, setTargetCount] = useState(""); // New state for target count
-
-//     useEffect(() => {
-//         fetchHabits();
-//     }, []);
-
-//     async function fetchHabits() {
-//         try {
-//             const response = await fetch("/api/habits");
-//             const data = await response.json();
-//             setHabits(data);
-//         } catch (error) {
-//             console.error("Failed to fetch habits:", error);
-//         }
-//     }
-
-//     function buildPath(route: string): string {
-//         return process.env.NODE_ENV === "development"
-//             ? `http://localhost:5000${route}`
-//             : route;
-//     }
-
-//     async function handleCreateHabit(event: React.FormEvent<HTMLFormElement>) {
-//         event.preventDefault();
-
-//         const newHabit = {
-//             name: habitName,
-//             measurementType: `${measurementType} - ${measurementUnit}`,
-//             frequency,
-//             targetCount: parseInt(targetCount, 10),
-//         };
-
-//         try {
-//             const response = await fetch(buildPath("/api/habits"), {
-//                 method: "POST",
-//                 headers: { "Content-Type": "application/json" },
-//                 body: JSON.stringify(newHabit),
-//             });
-//             if (response.ok) {
-//                 fetchHabits();
-//                 setHabitName("");
-//                 setMeasurementType("");
-//                 setMeasurementUnit("");
-//                 setFrequency("");
-//                 setTargetCount("");
-//             } else {
-//                 console.error("Failed to create habit");
-//             }
-//         } catch (error) {
-//             console.error("Error creating habit:", error);
-//         }
-//     }
-
-//         // Handle habit deletion
-//     async function handleDeleteHabit(id: string) {
-//         try {
-//             const response = await fetch(buildPath(`/api/habits/${id}`), {
-//                 method: "DELETE",
-//             });
-//             if (response.ok) {
-//                 fetchHabits();
-//             } else {
-//                 console.error("Failed to delete habit");
-//             }
-//         } catch (error) {
-//             console.error("Error deleting habit:", error);
-//         }
-//     }
-
-//     const measurementOptions: { [key: string]: string[] } = {
-//         distance: ["Miles", "Kilometers"],
-//         time: ["Seconds", "Minutes", "Hours"],
-//         weight: ["Pounds", "Ounces", "Grams"],
-//         amount: ["Fluid Ounces"],
-//     };
-
-//     return (
-//         <div style={{ maxWidth: "600px", margin: "auto", padding: "1rem" }}>
-//             <h2>Create a Habit</h2>
-//             <form onSubmit={handleCreateHabit} style={{ marginBottom: "1rem" }}>
-//                 <div style={{ marginBottom: "1rem" }}>
-//                     <label>Habit Name</label>
-//                     <input
-//                         type="text"
-//                         value={habitName}
-//                         onChange={(e) => setHabitName(e.target.value)}
-//                         required
-//                         style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-//                     />
-//                 </div>
-//                 <div style={{ marginBottom: "1rem" }}>
-//                     <label>Measurement Type</label>
-//                     <select
-//                         value={measurementType}
-//                         onChange={(e) => {
-//                             setMeasurementType(e.target.value);
-//                             setMeasurementUnit("");
-//                         }}
-//                         required
-//                         style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-//                     >
-//                         <option value="">Select Measurement Type</option>
-//                         <option value="distance">Distance</option>
-//                         <option value="time">Time</option>
-//                         <option value="weight">Weight</option>
-//                         <option value="amount">Amount</option>
-//                     </select>
-//                 </div>
-//                 {measurementType && (
-//                     <div style={{ marginBottom: "1rem" }}>
-//                         <label>Measurement Unit</label>
-//                         <select
-//                             value={measurementUnit}
-//                             onChange={(e) => setMeasurementUnit(e.target.value)}
-//                             required
-//                             style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-//                         >
-//                             <option value="">Select Unit</option>
-//                             {measurementOptions[measurementType].map((unit) => (
-//                                 <option key={unit} value={unit}>
-//                                     {unit}
-//                                 </option>
-//                             ))}
-//                         </select>
-//                     </div>
-//                 )}
-//                 <div style={{ marginBottom: "1rem" }}>
-//                     <label>Frequency</label>
-//                     <select
-//                         value={frequency}
-//                         onChange={(e) => setFrequency(e.target.value)}
-//                         required
-//                         style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-//                     >
-//                         <option value="">Select Frequency</option>
-//                         <option value="day">Day</option>
-//                         <option value="week">Week</option>
-//                     </select>
-//                 </div>
-//                 <div style={{ marginBottom: "1rem" }}>
-//                     <label>Target Count</label>
-//                     <input
-//                         type="number"
-//                         value={targetCount}
-//                         onChange={(e) => setTargetCount(e.target.value)}
-//                         required
-//                         style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-//                         min="1"
-//                     />
-//                 </div>
-//                 <button
-//                     type="submit"
-//                     style={{
-//                         width: "100%",
-//                         padding: "0.5rem",
-//                         background: "#007bff",
-//                         color: "#fff",
-//                         border: "none",
-//                         borderRadius: "4px",
-//                     }}
-//                 >
-//                     Create Habit
-//                 </button>
-//             </form>
-
-//             <h2>Your Habits</h2>
-//             <ul style={{ listStyle: "none", padding: 0 }}>
-//                 {habits.map((habit: any) => (
-//                     <li
-//                         key={habit._id}
-//                         style={{
-//                             display: "flex",
-//                             justifyContent: "space-between",
-//                             alignItems: "center",
-//                             padding: "0.5rem",
-//                             border: "1px solid #ccc",
-//                             borderRadius: "4px",
-//                             marginBottom: "0.5rem",
-//                         }}
-//                     >
-//                         <span>
-//                             {habit.name} ({habit.measurementType}, {habit.frequency} - {habit.targetCount} times)
-//                         </span>
-//                         <button
-//                             onClick={() => handleDeleteHabit(habit._id)}
-//                             style={{
-//                                 padding: "0.3rem 0.5rem",
-//                                 background: "red",
-//                                 color: "#fff",
-//                                 border: "none",
-//                                 borderRadius: "4px",
-//                                 cursor: "pointer",
-//                             }}
-//                         >
-//                             Delete
-//                         </button>
-//                     </li>
-//                 ))}
-//             </ul>
-//         </div>
-//     );
-// }
-
-// export default Home;
-
-
-import React, { useState, useEffect } from "react";
-
-function Home() {
-    const [habits, setHabits] = useState([]);
-    const [habitName, setHabitName] = useState("");
-    const [measurementType, setMeasurementType] = useState("");
-    const [measurementUnit, setMeasurementUnit] = useState("");
-    const [measurementAmount, setMeasurementAmount] = useState("");
-    const [frequency, setFrequency] = useState("");
-    const [frequencyType, setFrequencyType] = useState("");
-
-    // Fetch habits on component mount
-    useEffect(() => {
-        fetchHabits();
-    }, []);
-
-    // Fetch all habits
-    async function fetchHabits() {
-        try {
-            const response = await fetch("/api/habits");
-            const data = await response.json();
-            setHabits(data);
-        } catch (error) {
-            console.error("Failed to fetch habits:", error);
-        }
-    }
-
-    function buildPath(route: string): string {
-        return process.env.NODE_ENV === "development"
-            ? `http://localhost:5000${route}`
-            : route;
-    }
-
-    // Handle habit creation
-    async function handleCreateHabit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-
-        const newHabit = {
-            name: habitName,
-            measurementType,
-            measurementUnit: `${measurementAmount} ${measurementUnit}`,
-            frequency: `${frequency} per ${frequencyType}`,
-        };
-
-        try {
-            const response = await fetch(buildPath("/api/habits"), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newHabit),
-            });
-            if (response.ok) {
-                fetchHabits();
-                setHabitName("");
-                setMeasurementType("");
-                setMeasurementUnit("");
-                setMeasurementAmount("");
-                setFrequency("");
-                setFrequencyType("");
-            } else {
-                console.error("Failed to create habit");
-            }
-        } catch (error) {
-            console.error("Error creating habit:", error);
-        }
-    }
-
-    // Handle habit deletion
-    async function handleDeleteHabit(id: string) {
-        try {
-            const response = await fetch(buildPath(`/api/habits/${id}`), {
-                method: "DELETE",
-            });
-            if (response.ok) {
-                fetchHabits();
-            } else {
-                console.error("Failed to delete habit");
-            }
-        } catch (error) {
-            console.error("Error deleting habit:", error);
-        }
-    }
-
-    // Measurement options based on selected type
-    const measurementOptions: { [key: string]: string[] } = {
-        distance: ["Miles", "Kilometers"],
-        time: ["Seconds", "Minutes", "Hours"],
-        weight: ["Pounds", "Ounces", "Grams"],
-        amount: ["Fluid Ounces"],
-    };
-
-    return (
-        <div style={{ maxWidth: "600px", margin: "auto", padding: "1rem" }}>
-            <h2>Create a Habit</h2>
-            <form onSubmit={handleCreateHabit} style={{ marginBottom: "1rem" }}>
-                <div style={{ marginBottom: "1rem" }}>
-                    <label>Habit Name</label>
-                    <input
-                        type="text"
-                        value={habitName}
-                        onChange={(e) => setHabitName(e.target.value)}
-                        required
-                        style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-                    />
-                </div>
-                <div style={{ marginBottom: "1rem" }}>
-                    <label>Measurement Type</label>
-                    <select
-                        value={measurementType}
-                        onChange={(e) => {
-                            setMeasurementType(e.target.value);
-                            setMeasurementUnit("");
-                            setMeasurementAmount("");
-                        }}
-                        required
-                        style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-                    >
-                        <option value="">Select Measurement Type</option>
-                        <option value="distance">Distance</option>
-                        <option value="time">Time</option>
-                        <option value="weight">Weight</option>
-                        <option value="amount">Amount</option>
-                    </select>
-                </div>
-                {measurementType && (
-                    <div style={{ marginBottom: "1rem" }}>
-                        <label>Measurement Unit and Amount</label>
-                        <input
-                            type="number"
-                            value={measurementAmount}
-                            onChange={(e) => setMeasurementAmount(e.target.value)}
-                            placeholder="Amount"
-                            required
-                            style={{
-                                width: "48%",
-                                padding: "0.5rem",
-                                marginTop: "0.5rem",
-                                marginRight: "2%",
-                            }}
-                        />
-                        <select
-                            value={measurementUnit}
-                            onChange={(e) => setMeasurementUnit(e.target.value)}
-                            required
-                            style={{ width: "48%", padding: "0.5rem", marginTop: "0.5rem" }}
-                        >
-                            <option value="">Select Unit</option>
-                            {measurementOptions[measurementType].map((unit) => (
-                                <option key={unit} value={unit}>
-                                    {unit}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-                <div style={{ marginBottom: "1rem" }}>
-                    <label>Frequency</label>
-                    <input
-                        type="number"
-                        value={frequency}
-                        onChange={(e) => setFrequency(e.target.value)}
-                        placeholder="Times"
-                        required
-                        style={{
-                            width: "48%",
-                            padding: "0.5rem",
-                            marginTop: "0.5rem",
-                            marginRight: "2%",
-                        }}
-                    />
-                    <select
-                        value={frequencyType}
-                        onChange={(e) => setFrequencyType(e.target.value)}
-                        required
-                        style={{ width: "48%", padding: "0.5rem", marginTop: "0.5rem" }}
-                    >
-                        <option value="">Per Day or Week</option>
-                        <option value="day">Day</option>
-                        <option value="week">Week</option>
-                    </select>
-                </div>
-                <button
-                    type="submit"
-                    style={{
-                        width: "100%",
-                        padding: "0.5rem",
-                        background: "#007bff",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                    }}
-                >
-                    Create Habit
-                </button>
-            </form>
-
-            <h2>Your Habits</h2>
-            <ul style={{ listStyle: "none", padding: 0 }}>
-                {habits.map((habit: any) => (
-                    <li
-                        key={habit._id}
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "0.5rem",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                            marginBottom: "0.5rem",
-                        }}
-                    >
-                        <span>
-                            {habit.name} ({habit.measurementUnit}, {habit.frequency})
-                        </span>
-                        <button
-                            onClick={() => handleDeleteHabit(habit._id)}
-                            style={{
-                                padding: "0.3rem 0.5rem",
-                                background: "red",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                            }}
-                        >
-                            Delete
-                        </button>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+interface Habit {
+  _id: string
+  name: string
+  measurementType: string
+  measurementUnit: string
+  frequency: string
+  streak: number
+  goal: number
 }
 
-export default Home;
+// Mock API function
+const mockAddHabit = async (habit: Omit<Habit, '_id' | 'streak' | 'goal'>): Promise<Habit> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        ...habit,
+        _id: Math.random().toString(36).substr(2, 9),
+        streak: 0,
+        goal: 30,
+      });
+    }, 500); // Simulate network delay
+  });
+};
+
+export default function Component() {
+  const [date, setDate] = useState<Date>(new Date())
+  const [habits, setHabits] = useState<Habit[]>([])
+  const [habitName, setHabitName] = useState("")
+  const [measurementType, setMeasurementType] = useState("")
+  const [measurementUnit, setMeasurementUnit] = useState("")
+  const [measurementAmount, setMeasurementAmount] = useState("")
+  const [frequency, setFrequency] = useState("")
+  const [frequencyType, setFrequencyType] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Simulating initial habits fetch
+    setHabits([
+      { _id: '1', name: 'Running', measurementType: 'distance', measurementUnit: '5 Miles', frequency: '3 per week', streak: 5, goal: 30 },
+      { _id: '2', name: 'Reading', measurementType: 'time', measurementUnit: '30 Minutes', frequency: '1 per day', streak: 10, goal: 30 },
+    ])
+  }, [])
+
+  async function handleCreateHabit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsLoading(true)
+
+    const newHabit = {
+      name: habitName,
+      measurementType,
+      measurementUnit: `${measurementAmount} ${measurementUnit}`,
+      frequency: `${frequency} per ${frequencyType}`,
+    }
+
+    try {
+      const createdHabit = await mockAddHabit(newHabit)
+      setHabits(prevHabits => [...prevHabits, createdHabit])
+      setHabitName("")
+      setMeasurementType("")
+      setMeasurementUnit("")
+      setMeasurementAmount("")
+      setFrequency("")
+      setFrequencyType("")
+      setIsDialogOpen(false)
+    } catch (error) {
+      console.error("Error creating habit:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleDeleteHabit(id: string) {
+    setHabits(prevHabits => prevHabits.filter(habit => habit._id !== id))
+  }
+
+  const measurementOptions: { [key: string]: string[] } = {
+    distance: ["Miles", "Kilometers"],
+    time: ["Seconds", "Minutes", "Hours"],
+    weight: ["Pounds", "Ounces", "Grams"],
+    amount: ["Fluid Ounces"],
+  }
+
+  return (
+    <div className="flex h-screen bg-white font-sans">
+      {/* Sidebar */}
+      <div className="w-64 bg-[#64FCD9] text-black p-6 space-y-8">
+        <img
+          src='../tracktion.png'
+          alt="Tracktion logo"
+          width={300}
+          height={40}
+          className="mb-8"
+        />
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">USERNAME</h2>
+          <h2 className="text-xl font-semibold">GROUPS</h2>
+        </div>
+        <div className="absolute bottom-6 space-y-4">
+          <button className="block text-black/80 hover:text-black">Settings</button>
+          <button className="block text-black/80 hover:text-black">About</button>
+          <button className="block text-black/80 hover:text-black">Contact</button>
+          <button className="block text-black/80 hover:text-black">Log Out</button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-6 overflow-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <Input className="w-48 bg-gray-200" placeholder="GROUP NAME" />
+          <Input className="w-48 bg-gray-200" placeholder="HABIT NAME" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <Input className="w-48 bg-gray-200 pl-10" placeholder="SEARCH" />
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-teal-400 hover:bg-teal-500">+ ADD HABIT</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create a New Habit</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateHabit} className="space-y-4">
+                <div>
+                  <Label htmlFor="habitName">Habit Name</Label>
+                  <Input
+                    id="habitName"
+                    value={habitName}
+                    onChange={(e) => setHabitName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="measurementType">Measurement Type</Label>
+                  <Select value={measurementType} onValueChange={setMeasurementType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Measurement Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="distance">Distance</SelectItem>
+                      <SelectItem value="time">Time</SelectItem>
+                      <SelectItem value="weight">Weight</SelectItem>
+                      <SelectItem value="amount">Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {measurementType && (
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label htmlFor="measurementAmount">Amount</Label>
+                      <Input
+                        id="measurementAmount"
+                        type="number"
+                        value={measurementAmount}
+                        onChange={(e) => setMeasurementAmount(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label htmlFor="measurementUnit">Unit</Label>
+                      <Select value={measurementUnit} onValueChange={setMeasurementUnit}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {measurementOptions[measurementType]?.map((unit) => (
+                            <SelectItem key={unit} value={unit}>
+                              {unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label htmlFor="frequency">Frequency</Label>
+                    <Input
+                      id="frequency"
+                      type="number"
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="frequencyType">Per</Label>
+                    <Select value={frequencyType} onValueChange={setFrequencyType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="day">Day</SelectItem>
+                        <SelectItem value="week">Week</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Creating..." : "Create Habit"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <div className="flex gap-2 ml-auto">
+            <Button variant="ghost" size="icon">
+              <PenLine className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-4 mb-8">
+          {habits.map((habit) => (
+            <div
+              key={habit._id}
+              className="p-4 rounded-lg flex items-center justify-between bg-white border"
+            >
+              <div>
+                <h3 className="font-semibold">{habit.name}</h3>
+                <p className="text-sm opacity-70">
+                  {habit.measurementUnit}, {habit.frequency}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteHabit(habit._id)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress Track */}
+        <div className="relative w-full h-48 bg-gray-200 rounded-full mb-8">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-sm text-gray-600">
+            possible
+            <br />
+            "race track" thing to show
+            <br />
+            goal progression
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-8">
+          <div className="bg-gray-400 p-4 rounded-lg">
+            <div className="font-bold">Streak</div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">👑</span>
+              <span>0 Days</span>
+            </div>
+          </div>
+
+          <Calendar
+            mode="single"
+            selected={date}
+            //onSelect={setDate}
+            className="rounded-lg border"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
