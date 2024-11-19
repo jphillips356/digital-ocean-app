@@ -6,8 +6,6 @@ import {
   Container,
   TextField,
   Typography,
-  Switch,
-  FormControlLabel,
   Grid,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -18,7 +16,7 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: "#64FCD9",
+      main: "#000", // Adjust primary color here
     },
     background: {
       default: "transparent",
@@ -58,11 +56,17 @@ export default function Login() {
 
       const data = await response.json();
       if (response.ok && (data.success || !data.error)) {
-        setMessage(isRegister ? "Registration successful! You can now log in." : "Login successful!");
+        setMessage(
+          isRegister
+            ? "Registration successful! You can now log in."
+            : "Login successful!"
+        );
         if (!isRegister) navigate("/home");
         if (isRegister) setIsRegister(false);
       } else {
-        setMessage(data.error || (isRegister ? "Registration failed" : "Invalid credentials"));
+        setMessage(
+          data.error || (isRegister ? "Registration failed" : "Invalid credentials")
+        );
       }
     } catch (error) {
       setMessage(isRegister ? "Error during registration" : "Error logging in");
@@ -145,7 +149,7 @@ export default function Login() {
                         onChange={(e) => setFirstName(e.target.value)}
                         variant="outlined"
                         margin="normal"
-                        InputProps={{ style: { fontSize: '0.9rem' } }}
+                        InputProps={{ style: { fontSize: "0.9rem" } }}
                       />
                       <TextField
                         required
@@ -157,7 +161,7 @@ export default function Login() {
                         onChange={(e) => setLastName(e.target.value)}
                         variant="outlined"
                         margin="normal"
-                        InputProps={{ style: { fontSize: '0.9rem' } }}
+                        InputProps={{ style: { fontSize: "0.9rem" } }}
                       />
                     </>
                   )}
@@ -171,7 +175,7 @@ export default function Login() {
                     onChange={(e) => setLogin(e.target.value)}
                     variant="outlined"
                     margin="normal"
-                    InputProps={{ style: { fontSize: '0.9rem' } }}
+                    InputProps={{ style: { fontSize: "0.9rem" } }}
                   />
                   <TextField
                     required
@@ -184,63 +188,64 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     variant="outlined"
                     margin="normal"
-                    InputProps={{ style: { fontSize: '0.9rem' } }}
+                    InputProps={{ style: { fontSize: "0.9rem" } }}
                   />
                   <Button
                     type="submit"
                     fullWidth
                     variant="contained"
-                    sx={{ 
-                      fontSize: '0.9rem', 
-                      py: 1.5, 
-                      mt: 2, 
+                    sx={{
+                      fontSize: "0.9rem",
+                      py: 1.5,
+                      mt: 2,
                       mb: 2,
-                      backgroundColor: theme.palette.primary.main,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
+                      backgroundColor: "#69FCD9",
+                      color: theme.palette.primary.main,
+                      "&:hover": {
+                        backgroundColor: "#f0f0f0",
                       },
                     }}
                   >
                     {isRegister ? "Register" : "Sign In"}
                   </Button>
                   {message && (
-                    <Typography color="error" align="center" sx={{ mt: 1, mb: 1 }}>
+                    <Typography
+                      color="error"
+                      align="center"
+                      sx={{ mt: 1, mb: 1 }}
+                    >
                       {message}
                     </Typography>
                   )}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={isRegister}
-                          onChange={() => {
-                            setIsRegister(!isRegister);
-                            setMessage("");
-                          }}
-                          color="primary"
-                          size="small"
-                        />
-                      }
-                      label={
-                        <Typography variant="caption" sx={{ fontSize: '0.8rem' }}>
-                          {isRegister ? "Switch to Login" : "Switch to Register"}
-                        </Typography>
-                      }
-                    />
-                    <Button
-                      variant="text"
-                      sx={{ 
-                        fontSize: '0.8rem',
-                        color: theme.palette.primary.main,
-                        '&:hover': {
-                          backgroundColor: 'transparent',
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      Sign Up
-                    </Button>
-                  </Box>
+                  <Box
+  sx={{
+    display: "flex",
+    justifyContent: "center",
+    mt: 2,
+  }}
+>
+  <Button
+    variant="outlined"
+    onClick={() => {
+      setIsRegister(!isRegister);
+      setMessage("");
+    }}
+    sx={{
+      width: "100%", // Extend the button to full width
+      fontSize: "0.9rem",
+      textTransform: "none",
+      borderColor: theme.palette.primary.main,
+      color: theme.palette.primary.main,
+      "&:hover": {
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        borderColor: theme.palette.primary.dark,
+      },
+    }}
+  >
+    {isRegister ? "Login" : "Register"}
+  </Button>
+</Box>
+
                 </Box>
               </Box>
             </Grid>
