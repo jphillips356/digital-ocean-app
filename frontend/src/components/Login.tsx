@@ -16,7 +16,7 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: "#000", // Adjust primary color here
+      main: "#000",
     },
     background: {
       default: "transparent",
@@ -24,7 +24,7 @@ const theme = createTheme({
   },
 });
 
-export default function Login() {
+export default function Component() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -89,7 +89,7 @@ export default function Login() {
         <Container maxWidth="xl" sx={{ p: 0 }}>
           <Grid container sx={{ minHeight: "100vh" }}>
             {/* Left side - Image */}
-            <Grid item xs={6}>
+            <Grid item xs={12} md={5}>
               <Box
                 sx={{
                   height: "100%",
@@ -103,16 +103,17 @@ export default function Login() {
                   src="../home-screen.png"
                   alt="Workspace"
                   style={{
-                    maxWidth: "100%",
+                    width: "100%",
                     height: "auto",
-                    objectFit: "cover",
+                    objectFit: "fill",
+                    borderRadius: "10px",
                   }}
                 />
               </Box>
             </Grid>
 
             {/* Right side - Login Form */}
-            <Grid item xs={6}>
+            <Grid item xs={12} md={7}>
               <Box
                 sx={{
                   height: "100%",
@@ -127,14 +128,14 @@ export default function Login() {
                   onSubmit={handleSubmit}
                   sx={{
                     width: "100%",
-                    maxWidth: "400px",
+                    maxWidth: "500px",
                     height: "auto",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
                     backgroundColor: "rgba(255, 255, 255, 0.8)",
-                    padding: "2rem",
-                    borderRadius: "8px",
+                    padding: "3rem",
+                    borderRadius: "16px",
                   }}
                 >
                   {isRegister && (
@@ -149,7 +150,7 @@ export default function Login() {
                         onChange={(e) => setFirstName(e.target.value)}
                         variant="outlined"
                         margin="normal"
-                        InputProps={{ style: { fontSize: "0.9rem" } }}
+                        InputProps={{ style: { fontSize: "1rem" } }}
                       />
                       <TextField
                         required
@@ -161,7 +162,7 @@ export default function Login() {
                         onChange={(e) => setLastName(e.target.value)}
                         variant="outlined"
                         margin="normal"
-                        InputProps={{ style: { fontSize: "0.9rem" } }}
+                        InputProps={{ style: { fontSize: "1rem" } }}
                       />
                     </>
                   )}
@@ -175,7 +176,7 @@ export default function Login() {
                     onChange={(e) => setLogin(e.target.value)}
                     variant="outlined"
                     margin="normal"
-                    InputProps={{ style: { fontSize: "0.9rem" } }}
+                    InputProps={{ style: { fontSize: "1rem" } }}
                   />
                   <TextField
                     required
@@ -188,19 +189,20 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     variant="outlined"
                     margin="normal"
-                    InputProps={{ style: { fontSize: "0.9rem" } }}
+                    InputProps={{ style: { fontSize: "1rem" } }}
                   />
                   <Button
                     type="submit"
                     fullWidth
                     variant="contained"
                     sx={{
-                      fontSize: "0.9rem",
-                      py: 1.5,
-                      mt: 2,
+                      fontSize: "1rem",
+                      py: 2,
+                      mt: 3,
                       mb: 2,
                       backgroundColor: "#69FCD9",
                       color: theme.palette.primary.main,
+                      borderRadius: "24px",
                       "&:hover": {
                         backgroundColor: "#f0f0f0",
                       },
@@ -218,34 +220,35 @@ export default function Login() {
                     </Typography>
                   )}
                   <Box
-  sx={{
-    display: "flex",
-    justifyContent: "center",
-    mt: 2,
-  }}
->
-  <Button
-    variant="outlined"
-    onClick={() => {
-      setIsRegister(!isRegister);
-      setMessage("");
-    }}
-    sx={{
-      width: "100%", // Extend the button to full width
-      fontSize: "0.9rem",
-      textTransform: "none",
-      borderColor: theme.palette.primary.main,
-      color: theme.palette.primary.main,
-      "&:hover": {
-        backgroundColor: "rgba(255, 255, 255, 0.1)",
-        borderColor: theme.palette.primary.dark,
-      },
-    }}
-  >
-    {isRegister ? "Login" : "Register"}
-  </Button>
-</Box>
-
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      mt: 2,
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setIsRegister(!isRegister);
+                        setMessage("");
+                      }}
+                      sx={{
+                        width: "100%",
+                        fontSize: "1rem",
+                        textTransform: "none",
+                        borderColor: theme.palette.primary.main,
+                        color: theme.palette.primary.main,
+                        borderRadius: "24px",
+                        py: 1.5,
+                        "&:hover": {
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                          borderColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      {isRegister ? "Login" : "Register"}
+                    </Button>
+                  </Box>
                 </Box>
               </Box>
             </Grid>

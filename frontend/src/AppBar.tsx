@@ -27,11 +27,11 @@ function ResponsiveAppBar() {
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'white' }}>
+    <AppBar position="static" sx={{ backgroundColor: 'white', height: '100px' }}> {/* Adjusted AppBar height */}
       <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between', height: '100px' }}> {/* Adjusted Toolbar height */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <img src={logo} alt="Logo" style={{ height: '40px' }} />
+            <img src={logo} alt="Logo" style={{ height: '60px' }} /> {/* Increased logo size */}
           </Box>
 
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
@@ -41,10 +41,12 @@ function ResponsiveAppBar() {
                 onClick={handleCloseNavMenu}
                 sx={{
                   color: 'black',
-                  fontSize: '13px',
-                  height: '70px',
-                  fontFamily: '"Roboto", monospace',  
+                  fontSize: '18px', // Increased font size for "About us"
+                  height: '100%', // Ensures button takes full height of the AppBar
+                  fontFamily: '"Roboto", monospace',
                   borderRadius: '5px',
+                  padding: '20px', // Adds more padding around the text
+                  textTransform: 'none', // Removes text transformation to keep it uppercase
                 }}
               >
                 {page}
