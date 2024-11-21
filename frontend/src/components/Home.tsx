@@ -6,30 +6,8 @@ import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-
-interface Habit {
-  _id: string
-  name: string
-  measurementType: string
-  measurementUnit: string
-  frequency: string
-  streak: number
-  goal: number
-}
-
-// Mock API function
-const mockAddHabit = async (habit: Omit<Habit, '_id' | 'streak' | 'goal'>): Promise<Habit> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        ...habit,
-        _id: Math.random().toString(36).substr(2, 9),
-        streak: 0,
-        goal: 30,
-      });
-    }, 500); // Simulate network delay
-  });
-};
+import { fetchHabits, addHabit, editHabit, deleteHabit } from './api/habits'
+import { Habit } from './types/habit'
 
 export default function Component() {
   const [date, setDate] = useState<Date>(new Date())
@@ -42,13 +20,10 @@ export default function Component() {
   const [frequencyType, setFrequencyType] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
 
   useEffect(() => {
-    // Simulating initial habits fetch
-    setHabits([
-      { _id: '1', name: 'Running', measurementType: 'distance', measurementUnit: '5 Miles', frequency: '3 per week', streak: 5, goal: 30 },
-      { _id: '2', name: 'Reading', measurementType: 'time', measurementUnit: '30 Minutes', frequency: '1 per day', streak: 10, goal: 30 },
-    ])
+    fetchHabits().then(setHabits).catch(console.error)
   }, [])
 
   async function handleCreateHabit(event: React.FormEvent<HTMLFormElement>) {
@@ -63,24 +38,54 @@ export default function Component() {
     }
 
     try {
-      const createdHabit = await mockAddHabit(newHabit)
-      setHabits(prevHabits => [...prevHabits, createdHabit])
-      setHabitName("")
-      setMeasurementType("")
-      setMeasurementUnit("")
-      setMeasurementAmount("")
-      setFrequency("")
-      setFrequencyType("")
-      setIsDialogOpen(false)
+      if (editingHabit) {
+        const updatedHabit = await editHabit(editingHabit._id, newHabit)
+        setHabits(prevHabits => prevHabits.map(habit => 
+          habit._id === updatedHabit._id ? updatedHabit : habit
+        ))
+      } else {
+        const createdHabit = await addHabit(newHabit)
+        setHabits(prevHabits => [...prevHabits, createdHabit])
+      }
+      resetForm()
     } catch (error) {
-      console.error("Error creating habit:", error)
+      console.error("Error creating/editing habit:", error)
     } finally {
       setIsLoading(false)
+      setIsDialogOpen(false)
     }
   }
 
   async function handleDeleteHabit(id: string) {
-    setHabits(prevHabits => prevHabits.filter(habit => habit._id !== id))
+    try {
+      await deleteHabit(id)
+      setHabits(prevHabits => prevHabits.filter(habit => habit._id !== id))
+    } catch (error) {
+      console.error("Error deleting habit:", error)
+    }
+  }
+
+  function handleEditHabit(habit: Habit) {
+    setEditingHabit(habit)
+    setHabitName(habit.name)
+    setMeasurementType(habit.measurementType)
+    const [amount, unit] = habit.measurementUnit.split(' ')
+    setMeasurementAmount(amount)
+    setMeasurementUnit(unit)
+    const [freq, , type] = habit.frequency.split(' ')
+    setFrequency(freq)
+    setFrequencyType(type)
+    setIsDialogOpen(true)
+  }
+
+  function resetForm() {
+    setHabitName("")
+    setMeasurementType("")
+    setMeasurementUnit("")
+    setMeasurementAmount("")
+    setFrequency("")
+    setFrequencyType("")
+    setEditingHabit(null)
   }
 
   const measurementOptions: { [key: string]: string[] } = {
@@ -124,11 +129,13 @@ export default function Component() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-teal-400 hover:bg-teal-500">+ ADD HABIT</Button>
+              <Button className="bg-teal-400 hover:bg-teal-500">
+                {editingHabit ? 'EDIT HABIT' : '+ ADD HABIT'}
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create a New Habit</DialogTitle>
+                <DialogTitle>{editingHabit ? 'Edit Habit' : 'Create a New Habit'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleCreateHabit} className="space-y-4">
                 <div>
@@ -208,7 +215,7 @@ export default function Component() {
                   </div>
                 </div>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Creating..." : "Create Habit"}
+                  {isLoading ? "Saving..." : (editingHabit ? "Update Habit" : "Create Habit")}
                 </Button>
               </form>
             </DialogContent>
@@ -236,8 +243,8 @@ export default function Component() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="w-4 h-4" />
+                <Button variant="ghost" size="icon" onClick={() => handleEditHabit(habit)}>
+                  <PenLine className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => handleDeleteHabit(habit._id)}>
                   <X className="w-4 h-4" />
@@ -278,3 +285,4 @@ export default function Component() {
     </div>
   )
 }
+
