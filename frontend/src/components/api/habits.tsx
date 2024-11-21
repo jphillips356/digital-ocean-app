@@ -1,4 +1,4 @@
-import { Habit } from '../types/habit'
+import { Habit } from '../types/habit.tsx'
 
 const API_URL = 'http://localhost:5000/api/habits'
 
@@ -15,7 +15,7 @@ async function handleResponse(response: Response) {
 
 export async function fetchHabits(): Promise<Habit[]> {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch('http://localhost:5000/api/habits');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
