@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../auth_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -35,86 +36,156 @@ class _RegisterPageState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        title: SvgPicture.asset('assets/images/Logo.svg', height: 40),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
         children: [
-          TextFormField(
-            controller: _firstNameController,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              hintText: 'Enter First Name',
-              contentPadding: 
-              EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(32.0)),
-              ),
-            ), //InputDecoration
-          ), //TextFormField
-          TextFormField(
-            controller: _lastNameController,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              hintText: 'Enter Last Name',
-              contentPadding: 
-              EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(32.0)),
-              ),
-            ), // InputDecoration
-          ), // TextFormField
-          const SizedBox(
-            height: 8.0,
-          ),
-          TextFormField(
-            controller: _usernameController,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              hintText: 'Enter Username',
-              contentPadding: 
-              EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(32.0)),
-              ),
-            ), // InputDecoration
-          ), // TextFormField
-          const SizedBox(
-            height: 8.0,
-          ),
-          TextField(
-            controller: _passwordController,
-            textAlign: TextAlign.center,
-            obscureText: true,
-            decoration: const InputDecoration(
-              hintText: 'Enter Password',
-              contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(32.0))
+          // Background image with specific position
+          Positioned(
+            top: 70, // Adjust the position as needed
+            left: 0, // Adjust the position as needed
+            right: 0,
+            child: Container(
+              width: 250, // Adjust width as needed
+              height: 600, // Adjust height as needed
+              child: Image.asset(
+                'assets/images/edit.png',
+                fit: BoxFit.cover,
               ),
             ),
           ),
-          Padding(padding: const EdgeInsets.symmetric(vertical: 15.0),
-          child: Material(
-            elevation: 5.0,
-            color: const Color.fromARGB(255, 182, 95, 240),
-            borderRadius: BorderRadius.circular(30.0),
-            child: MaterialButton(
-              onPressed: (){},
-              minWidth: 200.0,
-              height: 42.0,
-              child: const Text(
-                'Register',
-                style: TextStyle(
-                  color: Colors.white
+          // Foreground content
+          Padding(
+            padding: const EdgeInsets.all(30.0), // Added padding around the entire body
+            child: Column(
+              children: [
+                const SizedBox(height: 30.0), // Space above the Register text
+                const Text(
+                  'Register',
+                  style: TextStyle(
+                    fontSize: 38.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    fontFamily: 'RubikMono'
                   ),
                 ),
-              ),
-            )
+                Spacer(), // Add space to move content downward
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0), // Adjust the bottom padding
+                  child: TextFormField(
+                    controller: _firstNameController,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter First Name',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                      contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2.0),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0), // Adjust the bottom padding
+                  child: TextFormField(
+                    controller: _lastNameController,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter Last Name',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                      contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2.0),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0), // Adjust the bottom padding
+                  child: TextFormField(
+                    controller: _usernameController,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter Username',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                      contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2.0),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0), // Adjust the bottom padding
+                  child: TextField(
+                    controller: _passwordController,
+                    textAlign: TextAlign.center,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter Password',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                      contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  child: Material(
+                    elevation: 5.0,
+                    color: const Color.fromARGB(255, 100, 252, 217),
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: MaterialButton(
+                      onPressed: _register, // Trigger the register function here
+                      minWidth: 200.0,
+                      height: 42.0,
+                      child: const Text(
+                        'Register',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-      ],
-    ),
+        ],
+      ),
     );
   }
 }

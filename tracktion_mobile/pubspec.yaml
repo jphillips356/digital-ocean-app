@@ -37,10 +37,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^0.13.5  # for making HTTP requests
   mongo_dart: ^0.9.1
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -54,6 +56,20 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/images/Logo.svg
+    - assets/images/home-screen.png
+    - assets/images/cat1.png
+    - assets/images/cat2.png
+    - assets/images/edit.png
+
+  fonts:
+    - family: RubikMono
+      fonts:
+        - asset: assets/fonts/RubikMonoOne-Regular.ttf
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Black.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
