@@ -3,6 +3,8 @@ export interface Habit {
     measurementType: string
     measurementUnit: string
     frequency: string
+    _id : string
+    streak : string
   }
   
   

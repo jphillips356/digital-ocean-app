@@ -24,7 +24,7 @@ const theme = createTheme({
   },
 });
 
-export default function Component() {
+export default function LoginPage() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -61,7 +61,11 @@ export default function Component() {
             ? "Registration successful! You can now log in."
             : "Login successful!"
         );
-        if (!isRegister) navigate("/home");
+        if (!isRegister) {
+          // Store the UserID in localStorage
+          localStorage.setItem('userId', data.id.toString());
+          navigate("/home");
+        }
         if (isRegister) setIsRegister(false);
       } else {
         setMessage(
@@ -258,3 +262,4 @@ export default function Component() {
     </ThemeProvider>
   );
 }
+
