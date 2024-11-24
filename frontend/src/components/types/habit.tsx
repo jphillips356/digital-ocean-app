@@ -1,10 +1,12 @@
 export interface Habit {
-    name: string
-    measurementType: string
-    measurementUnit: string
-    frequency: string
-    _id : string
-    streak : string
-  }
-  
-  
+  _id: string
+  name: string
+  measurementType: string
+  measurementUnit: string
+  frequency: string
+  UserID: string
+  streak: number
+  lastUpdated: string
+  goal : number
+}
+

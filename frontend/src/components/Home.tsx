@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
-import { MoreVertical, PenLine, Search, X } from 'lucide-react'
+import { Search, PenLine, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { addHabit, editHabit, deleteHabit, fetchHabits } from './api/habits'
+import { addHabit, editHabit, deleteHabit, fetchHabits, completeHabit } from './api/habits'
 import { Habit } from './types/habit'
+import RaceTrack from './RaceTrack'
 
 export default function Component() {
   const [date, setDate] = useState<Date>(new Date())
@@ -18,15 +19,15 @@ export default function Component() {
   const [measurementAmount, setMeasurementAmount] = useState("")
   const [frequency, setFrequency] = useState("")
   const [frequencyType, setFrequencyType] = useState("")
+  const [goal, setGoal] = useState("30")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string>("") // Add this line
+  const [userId, setUserId] = useState<string>("")
+  const [expandedHabit, setExpandedHabit] = useState<string | null>(null)
 
   useEffect(() => {
-    // For demonstration purposes, we're setting a default userId
-    // In a real application, you would get this from authentication
     setUserId("1234")
   }, [])
 
@@ -56,7 +57,10 @@ export default function Component() {
       measurementType,
       measurementUnit: `${measurementAmount} ${measurementUnit}`,
       frequency: `${frequency} per ${frequencyType}`,
-      UserID: userId, // Add this line
+      UserID: userId,
+      streak: editingHabit ? editingHabit.streak : 0,
+      lastUpdated: new Date().toISOString(),
+      goal: parseInt(goal),
     }
 
     try {
@@ -89,6 +93,18 @@ export default function Component() {
     }
   }
 
+  async function handleHabitCompletion(habit: Habit) {
+    try {
+      const updatedHabit = await completeHabit(habit._id);
+      setHabits(prevHabits => prevHabits.map(h => 
+        h._id === updatedHabit._id ? updatedHabit : h
+      ));
+    } catch (error) {
+      console.error("Error completing habit:", error);
+      setError('Failed to complete habit. Please try again.');
+    }
+  }
+
   function handleEditHabit(habit: Habit) {
     setEditingHabit(habit)
     setHabitName(habit.name)
@@ -99,6 +115,7 @@ export default function Component() {
     const [freq, , type] = habit.frequency.split(' ')
     setFrequency(freq)
     setFrequencyType(type)
+    setGoal(habit.goal.toString())
     setIsDialogOpen(true)
   }
 
@@ -109,6 +126,7 @@ export default function Component() {
     setMeasurementAmount("")
     setFrequency("")
     setFrequencyType("")
+    setGoal("30")
     setEditingHabit(null)
   }
 
@@ -160,7 +178,7 @@ export default function Component() {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-teal-400 hover:bg-teal-500">
-                {editingHabit ? 'EDIT HABIT' : '+ ADD HABIT'}
+                + ADD HABIT
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -244,66 +262,76 @@ export default function Component() {
                     </Select>
                   </div>
                 </div>
+                <div>
+                  <Label htmlFor="goal">Goal (days)</Label>
+                  <Input
+                    id="goal"
+                    type="number"
+                    value={goal}
+                    onChange={(e) => setGoal(e.target.value)}
+                    required
+                  />
+                </div>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? "Saving..." : (editingHabit ? "Update Habit" : "Create Habit")}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
-          <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" size="icon">
-              <PenLine className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
         </div>
 
         <div className="space-y-4 mb-8">
           {habits.map((habit) => (
             <div
               key={habit._id}
-              className="p-4 rounded-lg flex items-center justify-between bg-white border"
+              className="rounded-lg bg-white border"
             >
-              <div>
-                <h3 className="font-semibold">{habit.name}</h3>
-                <p className="text-sm opacity-70">
-                  {habit.measurementUnit}, {habit.frequency}
-                </p>
+              <div className="p-4 flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">{habit.name}</h3>
+                  <p className="text-sm opacity-70">
+                    {habit.measurementUnit}, {habit.frequency}
+                  </p>
+                  <p className="text-sm text-blue-600">Streak: {habit.streak} days</p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleHabitCompletion(habit)}
+                  >
+                    Complete
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleEditHabit(habit)}>
+                    <PenLine className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteHabit(habit._id)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setExpandedHabit(expandedHabit === habit._id ? null : habit._id)}
+                  >
+                    {expandedHabit === habit._id ? (
+                      <ChevronUp className="w-4 h-4" />
+                
+) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleEditHabit(habit)}>
-                  <PenLine className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteHabit(habit._id)}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+              {expandedHabit === habit._id && (
+                <div className="p-4 border-t">
+                  <RaceTrack streak={habit.streak} goal={habit.goal} />
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Progress Track */}
-        <div className="relative w-full h-48 bg-gray-200 rounded-full mb-8">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-sm text-gray-600">
-            possible
-            <br />
-            "race track" thing to show
-            <br />
-            goal progression
-          </div>
-        </div>
-
         <div className="flex justify-end gap-8">
-          <div className="bg-gray-400 p-4 rounded-lg">
-            <div className="font-bold">Streak</div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">👑</span>
-              <span>0 Days</span>
-            </div>
-          </div>
-
           <Calendar
             mode="single"
             selected={date}

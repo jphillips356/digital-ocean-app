@@ -13,6 +13,23 @@ async function handleResponse(response: Response) {
   }
 }
 
+
+export async function completeHabit(habitId: string): Promise<Habit> {
+  const response = await fetch(`http://localhost:5000/api/habits/${habitId}/complete`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to complete habit');
+  }
+
+  return response.json();
+}
+
 export async function fetchHabits(UserID: string): Promise<Habit[]> {
   try {
     const response = await fetch(`${API_URL}?UserID=${UserID}`);
@@ -26,42 +43,36 @@ export async function fetchHabits(UserID: string): Promise<Habit[]> {
   }
 }
 
-export async function addHabit(habit: Omit<Habit, '_id' | 'streak' | 'goal'>): Promise<Habit> {
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(habit),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error adding habit:', error);
-    throw error;
+export async function addHabit(habitData: Omit<Habit, '_id'>): Promise<Habit> {
+  const response = await fetch('http://localhost:5000/api/habits', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(habitData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add habit');
   }
+
+  return response.json();
 }
 
-export async function editHabit(id: string, habit: Partial<Habit>): Promise<Habit> {
-  try {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(habit),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error editing habit:', error);
-    throw error;
+export async function editHabit(id: string, habitData: Partial<Habit>): Promise<Habit> {
+  const response = await fetch(`http://localhost:5000/api/habits/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(habitData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to edit habit');
   }
+
+  return response.json();
 }
 
 export async function deleteHabit(id: string): Promise<void> {
