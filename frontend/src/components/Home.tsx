@@ -26,15 +26,17 @@ export default function Component() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState("")
-  const [firstName, setFirstName] = useState<string>("") // State for user's first name
+  const [firstName, setFirstName] = useState<string>(""); // State for user's first name
   const [expandedHabit, setExpandedHabit] = useState<string | null>(null)
   const navigate = useNavigate()
+
 
   useEffect(() => {
     // Retrieve userId from localStorage when component mounts
     const storedUserId = localStorage.getItem("userId");
     const storedFirstName = localStorage.getItem("firstName")
   
+
     if (storedUserId) {
       setUserId(storedUserId);
       if (storedFirstName) {
@@ -123,6 +125,11 @@ export default function Component() {
       setError('Failed to complete habit. Please try again.');
     }
   }
+  function handleLogout() {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("firstName");
+    navigate("/login"); // Redirect to login page after logout
+  }
 
   function handleEditHabit(habit: Habit) {
     setEditingHabit(habit)
@@ -156,13 +163,6 @@ export default function Component() {
     amount: ["Fluid Ounces"],
   }
 
-  // Handle logout functionality
-  function handleLogout() {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("firstName");
-    navigate("/login"); // Redirect to login page after logout
-  }
-
   return (
     <div className="flex h-screen bg-white font-sans">
       {/* Sidebar */}
@@ -181,10 +181,11 @@ export default function Component() {
           <Calendar
             mode="single"
             selected={date}
+           
           />
         </div>
         <div className="absolute bottom-6 space-y-4">
-          <button 
+        <button 
             className="block text-black/80 hover:text-black"
             onClick={handleLogout} // Logout handler
           >
@@ -230,76 +231,136 @@ export default function Component() {
                   <Label htmlFor="measurementType">Measurement Type</Label>
                   <Select value={measurementType} onValueChange={setMeasurementType}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Type" />
+                      <SelectValue placeholder="Select Measurement Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(measurementOptions).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="distance">Distance</SelectItem>
+                      <SelectItem value="time">Time</SelectItem>
+                      <SelectItem value="weight">Weight</SelectItem>
+                      <SelectItem value="amount">Amount</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 {measurementType && (
-                  <div>
-                    <Label htmlFor="measurementUnit">Measurement Unit</Label>
-                    <Select value={measurementUnit} onValueChange={setMeasurementUnit}>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label htmlFor="measurementAmount">Amount</Label>
+                      <Input
+                        id="measurementAmount"
+                        type="number"
+                        value={measurementAmount}
+                        onChange={(e) => setMeasurementAmount(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label htmlFor="measurementUnit">Unit</Label>
+                      <Select value={measurementUnit} onValueChange={setMeasurementUnit}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {measurementOptions[measurementType]?.map((unit) => (
+                            <SelectItem key={unit} value={unit}>
+                              {unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label htmlFor="frequency">Frequency</Label>
+                    <Input
+                      id="frequency"
+                      type="number"
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="frequencyType">Per</Label>
+                    <Select value={frequencyType} onValueChange={setFrequencyType}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Unit" />
+                        <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        {measurementOptions[measurementType].map((unit) => (
-                          <SelectItem key={unit} value={unit}>
-                            {unit}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="day">Day</SelectItem>
+                        <SelectItem value="week">Week</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-                <div>
-                  <Label htmlFor="measurementAmount">Amount</Label>
-                  <Input
-                    id="measurementAmount"
-                    value={measurementAmount}
-                    onChange={(e) => setMeasurementAmount(e.target.value)}
-                    required
-                  />
                 </div>
                 <div>
-                  <Label htmlFor="frequency">Frequency</Label>
-                  <Input
-                    id="frequency"
-                    value={frequency}
-                    onChange={(e) => setFrequency(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="frequencyType">Frequency Type</Label>
-                  <Input
-                    id="frequencyType"
-                    value={frequencyType}
-                    onChange={(e) => setFrequencyType(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="goal">Goal</Label>
+                  <Label htmlFor="goal">Goal (days)</Label>
                   <Input
                     id="goal"
+                    type="number"
                     value={goal}
                     onChange={(e) => setGoal(e.target.value)}
                     required
                   />
                 </div>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Habit'}
+                  {isLoading ? "Saving..." : (editingHabit ? "Update Habit" : "Create Habit")}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
+        </div>
+
+        <div className="space-y-4 mb-8">
+          {habits.map((habit) => (
+            <div
+              key={habit._id}
+              className="rounded-lg bg-white border"
+            >
+              <div className="p-4 flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">{habit.name}</h3>
+                  <p className="text-sm opacity-70">
+                    {habit.measurementUnit}, {habit.frequency}
+                  </p>
+                  <p className="text-sm text-blue-600">Streak: {habit.streak} days</p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleHabitCompletion(habit)}
+                  >
+                    Complete
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleEditHabit(habit)}>
+                    <PenLine className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteHabit(habit._id)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setExpandedHabit(expandedHabit === habit._id ? null : habit._id)}
+                  >
+                    {expandedHabit === habit._id ? (
+                      <ChevronUp className="w-4 h-4" />
+                
+) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              {expandedHabit === habit._id && (
+                <div className="p-4 border-t">
+                  <RaceTrack streak={habit.streak} goal={habit.goal} carImage="../racecar.png" />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
