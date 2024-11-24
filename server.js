@@ -134,11 +134,14 @@ app.get('/api/habits', async (req, res) => {
 
 app.post('/api/habits', async (req, res) => {
   try {
-    const { name, measurementType, measurementUnit, frequency, UserID } = req.body;
+    const { name, measurementType, measurementUnit, frequency, goal, UserID } = req.body;
 
     if (!UserID) {
       return res.status(400).json({ error: 'UserID is required to create a habit' });
     }
+
+    // Set a default goal if one is not provided
+    const habitGoal = goal || 30; // Default goal is 30 if not specified
 
     const newHabit = {
       name,
@@ -146,7 +149,7 @@ app.post('/api/habits', async (req, res) => {
       measurementUnit,
       frequency,
       streak: 0,
-      goal: 30,
+      goal: habitGoal,
       UserID
     };
 
@@ -157,6 +160,7 @@ app.post('/api/habits', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.put('/api/habits/:id', async (req, res) => {
   try {
