@@ -5,8 +5,8 @@ const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
-const port = 8080;
-//const port = 5000; 
+//const port = 8080;
+const port = 5000; 
 
 // Middleware
 app.use(cors());
@@ -94,9 +94,25 @@ app.post('/api/register', async (req, res) => {
     }
 });
 // Habits API routes
+// app.get('/api/habits', async (req, res) => {
+//   try {
+//     const habits = await db.collection('habits').find().toArray();
+//     res.json(habits);
+//   } catch (error) {
+//     console.error('Error fetching habits:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
 app.get('/api/habits', async (req, res) => {
   try {
-    const habits = await db.collection('habits').find().toArray();
+    const { UserID } = req.query;
+
+    if (!UserID) {
+      return res.status(400).json({ error: 'UserID is required to fetch habits' });
+    }
+
+    const habits = await db.collection('habits').find({ UserID: parseInt(UserID) }).toArray();
     res.json(habits);
   } catch (error) {
     console.error('Error fetching habits:', error);
@@ -104,10 +120,36 @@ app.get('/api/habits', async (req, res) => {
   }
 });
 
+// app.post('/api/habits', async (req, res) => {
+//   try {
+//     const { name, measurementType, measurementUnit, frequency } = req.body;
+//     const newHabit = { name, measurementType, measurementUnit, frequency, streak: 0, goal: 30 };
+//     const result = await db.collection('habits').insertOne(newHabit);
+//     res.status(201).json({ ...newHabit, _id: result.insertedId });
+//   } catch (error) {
+//     console.error('Error creating habit:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
 app.post('/api/habits', async (req, res) => {
   try {
-    const { name, measurementType, measurementUnit, frequency } = req.body;
-    const newHabit = { name, measurementType, measurementUnit, frequency, streak: 0, goal: 30 };
+    const { name, measurementType, measurementUnit, frequency, UserID } = req.body;
+
+    if (!UserID) {
+      return res.status(400).json({ error: 'UserID is required to create a habit' });
+    }
+
+    const newHabit = {
+      name,
+      measurementType,
+      measurementUnit,
+      frequency,
+      streak: 0,
+      goal: 30,
+      UserID
+    };
+
     const result = await db.collection('habits').insertOne(newHabit);
     res.status(201).json({ ...newHabit, _id: result.insertedId });
   } catch (error) {
@@ -122,7 +164,7 @@ app.put('/api/habits/:id', async (req, res) => {
     const { name, measurementType, measurementUnit, frequency, streak, goal } = req.body;
     const result = await db.collection('habits').findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { $set: { name, measurementType, measurementUnit, frequency, streak, goal } },
+      { $set: { name, measurementUnit, frequency, streak, goal } },
       { returnDocument: 'after' }
     );
     if (result.value) {
@@ -159,8 +201,51 @@ app.listen(port, () => {
 app.get('/', (req, res) => { 
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
     });
+
+    app.put('/api/habits/:id/complete', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
+
+    if (!habit) {
+      return res.status(404).json({ error: 'Habit not found' });
+    }
+
+    const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted) : null;
+    const currentDate = new Date();
+
+    // Check if the habit has already been completed today
+    if (lastCompletedDate && 
+        lastCompletedDate.getFullYear() === currentDate.getFullYear() &&
+        lastCompletedDate.getMonth() === currentDate.getMonth() &&
+        lastCompletedDate.getDate() === currentDate.getDate()) {
+      return res.status(400).json({ error: 'Habit already completed today' });
+    }
+
+    // Update the habit
+    const result = await db.collection('habits').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          lastCompleted: currentDate,
+          streak: habit.streak + 1
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (result.value) {
+      res.json(result.value);
+    } else {
+      res.status(404).json({ error: 'Habit not found' });
+    }
+  } catch (error) {
+    console.error('Error completing habit:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
   
   // Start server
-  app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
-  });
+ // app.listen(port, () => {
+   //   console.log(`Server is running on port ${port}`);
+ // });
