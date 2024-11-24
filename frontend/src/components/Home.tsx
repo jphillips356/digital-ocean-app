@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { addHabit, editHabit, deleteHabit, fetchHabits, completeHabit } from './api/habits'
 import { Habit } from './types/habit'
+import { useNavigate } from "react-router-dom"; // Add this line
 import RaceTrack from './RaceTrack'
 
 export default function Component() {
@@ -26,62 +27,98 @@ export default function Component() {
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string>("")
   const [expandedHabit, setExpandedHabit] = useState<string | null>(null)
+  const navigate = useNavigate()
+
+  // useEffect(() => {
+  //   setUserId("1234")
+  // }, [])
+
+  // useEffect(() => {
+  //   if (userId) {
+  //     fetchUserHabits()
+  //   }
+  // }, [userId])
 
   useEffect(() => {
-    setUserId("1234")
-  }, [])
+    // Retrieve userId from localStorage when component mounts
+    const storedUserId = localStorage.getItem("userId");
+
+    if (storedUserId) {
+      setUserId(storedUserId);
+    } else {
+      // Redirect to login if userId is not found
+      navigate("/login");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     if (userId) {
-      fetchUserHabits()
+      fetchUserHabits();
     }
-  }, [userId])
+  }, [userId]);
 
   async function fetchUserHabits() {
     try {
-      const fetchedHabits = await fetchHabits(userId)
-      setHabits(fetchedHabits)
+      const fetchedHabits = await fetchHabits(userId);
+      setHabits(fetchedHabits);
     } catch (error) {
-      console.error('Error fetching habits:', error)
-      setError('Failed to fetch habits. Please try again later.')
+      console.error('Error fetching habits:', error);
+      setError('Failed to fetch habits. Please try again later.');
     }
   }
 
-  async function handleCreateOrEditHabit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setIsLoading(true)
-    setError(null)
 
+
+
+
+  // async function fetchUserHabits() {
+  //   try {
+  //     const fetchedHabits = await fetchHabits(userId)
+  //     setHabits(fetchedHabits)
+  //   } catch (error) {
+  //     console.error('Error fetching habits:', error)
+  //     setError('Failed to fetch habits. Please try again later.')
+  //   }
+  // }
+
+  async function handleCreateOrEditHabit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+  
     const habitData = {
       name: habitName,
       measurementType,
       measurementUnit: `${measurementAmount} ${measurementUnit}`,
       frequency: `${frequency} per ${frequencyType}`,
-      UserID: userId,
+      UserID: Number(userId),  // Convert userId to a number here
       streak: editingHabit ? editingHabit.streak : 0,
       lastUpdated: new Date().toISOString(),
       goal: parseInt(goal),
-    }
-
+    };
+  
     try {
       if (editingHabit) {
-        const updatedHabit = await editHabit(editingHabit._id, habitData)
-        setHabits(prevHabits => prevHabits.map(habit => 
-          habit._id === updatedHabit._id ? updatedHabit : habit
-        ))
+        const updatedHabit = await editHabit(editingHabit._id, habitData);
+        setHabits((prevHabits) =>
+          prevHabits.map((habit) =>
+            habit._id === updatedHabit._id ? updatedHabit : habit
+          )
+        );
       } else {
-        const createdHabit = await addHabit(habitData)
-        setHabits(prevHabits => [...prevHabits, createdHabit])
+        const createdHabit = await addHabit(habitData);
+        setHabits((prevHabits) => [...prevHabits, createdHabit]);
       }
-      resetForm()
+      resetForm();
     } catch (error) {
-      console.error("Error creating/editing habit:", error)
-      setError('Failed to save habit. Please try again.')
+      console.error("Error creating/editing habit:", error);
+      setError('Failed to save habit. Please try again.');
     } finally {
-      setIsLoading(false)
-      setIsDialogOpen(false)
+      setIsLoading(false);
+      setIsDialogOpen(false);
     }
   }
+  
 
   async function handleDeleteHabit(id: string) {
     try {
@@ -159,9 +196,6 @@ export default function Component() {
           />
         </div>
         <div className="absolute bottom-6 space-y-4">
-          <button className="block text-black/80 hover:text-black">Settings</button>
-          <button className="block text-black/80 hover:text-black">About</button>
-          <button className="block text-black/80 hover:text-black">Contact</button>
           <button className="block text-black/80 hover:text-black">Log Out</button>
         </div>
       </div>
@@ -338,4 +372,3 @@ export default function Component() {
     </div>
   )
 }
-

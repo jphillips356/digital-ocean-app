@@ -63,7 +63,7 @@ export default function LoginPage() {
         );
         if (!isRegister) {
           // Store the UserID in localStorage
-          localStorage.setItem('userId', data.id.toString());
+          localStorage.setItem('userId', typeof data.id === "number" ? data.id : parseInt('dataId'))
           navigate("/home");
         }
         if (isRegister) setIsRegister(false);
