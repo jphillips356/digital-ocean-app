@@ -19,7 +19,7 @@ export default function Component() {
   const [measurementAmount, setMeasurementAmount] = useState("")
   const [frequency, setFrequency] = useState("")
   const [frequencyType, setFrequencyType] = useState("")
-  const [goal, setGoal] = useState("30")
+  const [goal, setGoal] = useState("Days")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
@@ -126,7 +126,7 @@ export default function Component() {
     setMeasurementAmount("")
     setFrequency("")
     setFrequencyType("")
-    setGoal("30")
+    setGoal("")
     setEditingHabit(null)
   }
 
@@ -150,7 +150,13 @@ export default function Component() {
         />
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">USERNAME</h2>
-          <h2 className="text-xl font-semibold">GROUPS</h2>
+        </div>
+        <div className="flex justify-center items-center p-4 mb-6">
+          <Calendar
+            mode="single"
+            selected={date}
+           
+          />
         </div>
         <div className="absolute bottom-6 space-y-4">
           <button className="block text-black/80 hover:text-black">Settings</button>
@@ -169,8 +175,6 @@ export default function Component() {
           </div>
         )}
         <div className="flex items-center gap-4 mb-8">
-          <Input className="w-48 bg-gray-200" placeholder="GROUP NAME" />
-          <Input className="w-48 bg-gray-200" placeholder="HABIT NAME" />
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
             <Input className="w-48 bg-gray-200 pl-10" placeholder="SEARCH" />
@@ -324,20 +328,11 @@ export default function Component() {
               </div>
               {expandedHabit === habit._id && (
                 <div className="p-4 border-t">
-                  <RaceTrack streak={habit.streak} goal={habit.goal} />
+                  <RaceTrack streak={habit.streak} goal={habit.goal} carImage="../racecar.png" />
                 </div>
               )}
             </div>
           ))}
-        </div>
-
-        <div className="flex justify-end gap-8">
-          <Calendar
-            mode="single"
-            selected={date}
-            //onSelect={setDate}
-            className="rounded-lg border"
-          />
         </div>
       </div>
     </div>
