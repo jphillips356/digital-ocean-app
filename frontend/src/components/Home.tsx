@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { addHabit, editHabit, deleteHabit, fetchHabits, completeHabit } from './api/habits'
 import { Habit } from './types/habit'
-import { useNavigate } from "react-router-dom"; // Add this line
+import { useNavigate } from "react-router-dom"
 import RaceTrack from './RaceTrack'
 
 export default function Component() {
@@ -26,26 +26,24 @@ export default function Component() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState("")
-  const [firstName, setFirstName] = useState<string>(""); // State for user's first name
+  const [firstName, setFirstName] = useState<string>("")
   const [expandedHabit, setExpandedHabit] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
   const navigate = useNavigate()
 
-
   useEffect(() => {
-    // Retrieve userId from localStorage when component mounts
     const storedUserId = localStorage.getItem("userId");
     const storedFirstName = localStorage.getItem("firstName")
   
-
     if (storedUserId) {
       setUserId(storedUserId);
       if (storedFirstName) {
-        setFirstName(storedFirstName);  // This sets the firstName state
+        setFirstName(storedFirstName);
       } else {
         console.error("First name not found in localStorage");
       }
     } else {
-      navigate("/login");  // Redirect to login if userId is not found
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -75,7 +73,7 @@ export default function Component() {
       measurementType,
       measurementUnit: `${measurementAmount} ${measurementUnit}`,
       frequency: `${frequency} per ${frequencyType}`,
-      UserID: Number(userId),  // Convert userId to a number here
+      UserID: Number(userId),
       streak: editingHabit ? editingHabit.streak : 0,
       lastUpdated: new Date().toISOString(),
       goal: parseInt(goal),
@@ -103,7 +101,6 @@ export default function Component() {
     }
   }
   
-
   async function handleDeleteHabit(id: string) {
     try {
       await deleteHabit(id)
@@ -125,10 +122,11 @@ export default function Component() {
       setError('Failed to complete habit. Please try again.');
     }
   }
+
   function handleLogout() {
     localStorage.removeItem("userId");
     localStorage.removeItem("firstName");
-    navigate("/login"); // Redirect to login page after logout
+    navigate("/login");
   }
 
   function handleEditHabit(habit: Habit) {
@@ -163,6 +161,12 @@ export default function Component() {
     amount: ["Fluid Ounces"],
   }
 
+  const filteredHabits = habits.filter(habit => 
+    habit.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    habit.measurementUnit.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    habit.frequency.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   return (
     <div className="flex h-screen bg-white font-sans">
       {/* Sidebar */}
@@ -181,13 +185,13 @@ export default function Component() {
           <Calendar
             mode="single"
             selected={date}
-           
+            onSelect={(newDate) => newDate && setDate(newDate)}
           />
         </div>
         <div className="absolute bottom-6 space-y-4">
         <button 
             className="block text-black/80 hover:text-black"
-            onClick={handleLogout} // Logout handler
+            onClick={handleLogout}
           >
             Log Out
           </button>
@@ -205,7 +209,12 @@ export default function Component() {
         <div className="flex items-center gap-4 mb-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <Input className="w-48 bg-gray-200 pl-10" placeholder="SEARCH" />
+            <Input 
+              className="w-48 bg-gray-200 pl-10" 
+              placeholder="SEARCH" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -313,7 +322,7 @@ export default function Component() {
         </div>
 
         <div className="space-y-4 mb-8">
-          {habits.map((habit) => (
+          {filteredHabits.map((habit) => (
             <div
               key={habit._id}
               className="rounded-lg bg-white border"
@@ -347,8 +356,7 @@ export default function Component() {
                   >
                     {expandedHabit === habit._id ? (
                       <ChevronUp className="w-4 h-4" />
-                
-) : (
+                    ) : (
                       <ChevronDown className="w-4 h-4" />
                     )}
                   </Button>
@@ -366,3 +374,4 @@ export default function Component() {
     </div>
   )
 }
+

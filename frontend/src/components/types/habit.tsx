@@ -4,7 +4,7 @@ export interface Habit {
   measurementType: string
   measurementUnit: string
   frequency: string
-  UserID: string
+  UserID: number
   streak: number
   lastUpdated: string
   goal : number
