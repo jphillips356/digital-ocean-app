@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -7,6 +7,11 @@ import {
   TextField,
   Typography,
   Grid,
+  Link,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
@@ -31,6 +36,10 @@ export default function LoginPage() {
   const [lastName, setLastName] = useState("");
   const [isRegister, setIsRegister] = useState(false);
   const [message, setMessage] = useState("");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
+  const location = useLocation();
 
   const navigate = useNavigate();
 
@@ -39,6 +48,14 @@ export default function LoginPage() {
       ? `http://localhost:5000${route}`
       : route;
   }
+
+  useEffect(() => {
+    const verified = new URLSearchParams(location.search).get('verified');
+    if (verified === 'true') {
+      setIsVerified(true);
+      setMessage('Email verified successfully. You can now log in.');
+    }
+  }, [location]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,26 +73,44 @@ export default function LoginPage() {
 
       const data = await response.json();
       if (response.ok && (data.success || !data.error)) {
-        setMessage(
-          isRegister
-            ? "Registration successful! You can now log in."
-            : "Login successful!"
-        );
-        if (!isRegister) {
-          // Store the UserID in localStorage
-          localStorage.setItem('userId', typeof data.id === "number" ? data.id : parseInt('dataId'))
-          localStorage.setItem('firstName', data.firstName);
-          navigate("/home");
+        if (isRegister) {
+          setMessage("Registration successful! Please check your email for verification.");
+          setIsRegister(false);
+        } else {
+          if (data.isVerified) {
+            localStorage.setItem('userId', data.id.toString());
+            localStorage.setItem('firstName', data.firstName);
+            navigate("/home");
+          } else {
+            setMessage("Please verify your email before logging in.");
+          }
         }
-        if (isRegister) setIsRegister(false);
       } else {
-        setMessage(
-          data.error || (isRegister ? "Registration failed" : "Invalid credentials")
-        );
+        setMessage(data.error || (isRegister ? "Registration failed" : "Invalid credentials"));
       }
     } catch (error) {
       setMessage(isRegister ? "Error during registration" : "Error logging in");
     }
+  }
+
+  async function handleForgotPassword() {
+    try {
+      const response = await fetch(buildPath("/api/forgot-password"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMessage("Password reset instructions sent to your email.");
+      } else {
+        setMessage(data.error || "Error processing your request.");
+      }
+    } catch (error) {
+      setMessage("Error processing your request.");
+    }
+    setForgotPasswordOpen(false);
   }
 
   return (
@@ -227,7 +262,8 @@ export default function LoginPage() {
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "center",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                       mt: 2,
                     }}
                   >
@@ -238,7 +274,7 @@ export default function LoginPage() {
                         setMessage("");
                       }}
                       sx={{
-                        width: "100%",
+                        width: "48%",
                         fontSize: "1rem",
                         textTransform: "none",
                         borderColor: theme.palette.primary.main,
@@ -253,6 +289,22 @@ export default function LoginPage() {
                     >
                       {isRegister ? "Login" : "Register"}
                     </Button>
+                    <Link
+                      component="button"
+                      variant="body2"
+                      onClick={() => setForgotPasswordOpen(true)}
+                      sx={{
+                        width: "48%",
+                        fontSize: "1rem",
+                        textAlign: "center",
+                        color: theme.palette.primary.main,
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      Forgot Password?
+                    </Link>
                   </Box>
                 </Box>
               </Box>
@@ -260,6 +312,33 @@ export default function LoginPage() {
           </Grid>
         </Container>
       </Box>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={forgotPasswordOpen} onClose={() => setForgotPasswordOpen(false)}>
+        <DialogTitle>Forgot Password</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="email"
+            label="Email Address"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={forgotPasswordEmail}
+            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setForgotPasswordOpen(false)}>Cancel</Button>
+          <Button onClick={handleForgotPassword}>Reset Password</Button>
+        </DialogActions>
+      </Dialog>
+      {isVerified && (
+        <Typography color="primary" align="center" sx={{ mt: 2 }}>
+          Email verified successfully. You can now log in.
+        </Typography>
+      )}
     </ThemeProvider>
   );
 }

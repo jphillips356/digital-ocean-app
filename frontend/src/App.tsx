@@ -18,12 +18,14 @@
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import ResetPassword from './components/ResetPassword';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
