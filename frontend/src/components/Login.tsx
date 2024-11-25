@@ -39,6 +39,7 @@ export default function LoginPage() {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isVerified, setIsVerified] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
   const location = useLocation();
 
   const navigate = useNavigate();
@@ -73,9 +74,9 @@ export default function LoginPage() {
 
       const data = await response.json();
       if (response.ok && (data.success || !data.error)) {
-        if (isRegister) {
-          setMessage("Registration successful! Please check your email for verification.");
-          setIsRegister(false);
+        if (isRegister || data.needsVerification) {
+          setMessage("Please check your email for verification.");
+          setShowResendVerification(true);
         } else {
           if (data.isVerified) {
             localStorage.setItem('userId', data.id.toString());
@@ -83,10 +84,16 @@ export default function LoginPage() {
             navigate("/home");
           } else {
             setMessage("Please verify your email before logging in.");
+            setShowResendVerification(true);
           }
         }
       } else {
-        setMessage(data.error || (isRegister ? "Registration failed" : "Invalid credentials"));
+        if (data.needsVerification) {
+          setMessage("This email is registered but not verified. Please verify your email.");
+          setShowResendVerification(true);
+        } else {
+          setMessage(data.error || (isRegister ? "Registration failed" : "Invalid credentials"));
+        }
       }
     } catch (error) {
       setMessage(isRegister ? "Error during registration" : "Error logging in");
@@ -111,6 +118,25 @@ export default function LoginPage() {
       setMessage("Error processing your request.");
     }
     setForgotPasswordOpen(false);
+  }
+
+  async function handleResendVerification() {
+    try {
+      const response = await fetch(buildPath("/api/resend-verification"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: login }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMessage("Verification email resent. Please check your inbox.");
+      } else {
+        setMessage(data.error || "Error resending verification email.");
+      }
+    } catch (error) {
+      setMessage("Error resending verification email.");
+    }
   }
 
   return (
@@ -259,6 +285,28 @@ export default function LoginPage() {
                       {message}
                     </Typography>
                   )}
+                  {showResendVerification && (
+                    <Button
+                      onClick={handleResendVerification}
+                      fullWidth
+                      variant="outlined"
+                      sx={{
+                        fontSize: "1rem",
+                        py: 1,
+                        mt: 2,
+                        mb: 2,
+                        borderColor: theme.palette.primary.main,
+                        color: theme.palette.primary.main,
+                        borderRadius: "24px",
+                        "&:hover": {
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                          borderColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      Resend Verification Email
+                    </Button>
+                  )}
                   <Box
                     sx={{
                       display: "flex",
@@ -272,6 +320,7 @@ export default function LoginPage() {
                       onClick={() => {
                         setIsRegister(!isRegister);
                         setMessage("");
+                        setShowResendVerification(false);
                       }}
                       sx={{
                         width: "48%",

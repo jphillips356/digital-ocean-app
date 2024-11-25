@@ -89,6 +89,9 @@ app.post('/api/register', async (req, res) => {
     const usersCollection = db.collection('users');
     const existingUser = await usersCollection.findOne({ Login: login });
     if (existingUser) {
+      if (!existingUser.IsVerified) {
+        return res.status(409).json({ success: false, error: 'User exists but is not verified', needsVerification: true });
+      }
       return res.status(400).json({ success: false, error: 'Username already taken' });
     }
     const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
@@ -112,7 +115,7 @@ app.post('/api/register', async (req, res) => {
       `Please click on the following link to verify your email: ${verificationLink}`
     );
     
-    res.status(201).json({ success: true, error: '' });
+    res.status(201).json({ success: true, error: '', needsVerification: true });
   } catch (e) {
     console.error(e);
     res.status(500).json({ success: false, error: 'An error occurred during registration' });
@@ -136,6 +139,40 @@ app.get('/api/verify-email', async (req, res) => {
   } catch (error) {
     console.error('Error verifying email:', error);
     res.status(500).send('An error occurred while verifying your email');
+  }
+});
+// Resend verification email route
+app.post('/api/resend-verification', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ Login: email });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.IsVerified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    const verificationToken = crypto.randomBytes(20).toString('hex');
+    await usersCollection.updateOne(
+      { _id: user._id },
+      { $set: { VerificationToken: verificationToken } }
+    );
+
+    const verificationLink = `http://localhost:5173/api/verify-email?token=${verificationToken}`;
+    await sendEmail(
+      email,
+      'Verify Your Email',
+      `Please click on the following link to verify your email: ${verificationLink}`
+    );
+
+    res.json({ message: 'Verification email resent successfully' });
+  } catch (error) {
+    console.error('Error resending verification email:', error);
+    res.status(500).json({ error: 'An error occurred while resending the verification email' });
   }
 });
 
