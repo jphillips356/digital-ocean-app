@@ -177,7 +177,7 @@ export default function LoginPage() {
           width: "100%",
           display: "flex",
           alignItems: "stretch",
-          backgroundImage: {background},
+          backgroundImage: `url(${background})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
