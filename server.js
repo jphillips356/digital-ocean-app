@@ -405,9 +405,10 @@ app.put('/api/habits/:id/complete', async (req, res) => {
   }
 });
 
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
 // Serve index.html for the root route 
 app.get('/', (req, res) => { 
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend/dist', 'frontend/dist/index.html'));
 });
 
 // Start server
