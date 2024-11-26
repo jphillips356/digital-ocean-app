@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 
 // Example logo image, replace with your actual logo path
-import logo from '../tracktion.png';
+import logo from 'src/assets/tracktion.png';
 
 const pages = ['About us'];
 
