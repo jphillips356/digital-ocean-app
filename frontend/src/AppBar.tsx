@@ -13,7 +13,6 @@ import MenuItem from '@mui/material/MenuItem';
 // Example logo image, replace with your actual logo path
 import logo from './assets/tracktion.png';
 
-const pages = ['About us'];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
@@ -32,26 +31,6 @@ function ResponsiveAppBar() {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between', height: '100px' }}> {/* Adjusted Toolbar height */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <img src={logo} alt="Logo" style={{ height: '60px' }} /> {/* Increased logo size */}
-          </Box>
-
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page}
-                onClick={handleCloseNavMenu}
-                sx={{
-                  color: 'black',
-                  fontSize: '18px', // Increased font size for "About us"
-                  height: '100%', // Ensures button takes full height of the AppBar
-                  fontFamily: '"Roboto", monospace',
-                  borderRadius: '5px',
-                  padding: '20px', // Adds more padding around the text
-                  textTransform: 'none', // Removes text transformation to keep it uppercase
-                }}
-              >
-                {page}
-              </Button>
-            ))}
           </Box>
 
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
@@ -83,11 +62,6 @@ function ResponsiveAppBar() {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
-                </MenuItem>
-              ))}
             </Menu>
           </Box>
         </Toolbar>
