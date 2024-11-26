@@ -17,12 +17,12 @@ const VerifyEmail = () => {
 
     const verifyToken = async () => {
       try {
-        const response = await fetch(`/api/verify-email?token=${token}`);
-        if (response.ok) {
+        const response = await fetch(`http://localhost:5000/api/verify-email?token=${token}`);
+        const data = await response.json();
+        if (response.ok && data.success) {
           setMessage('Email verified successfully. Redirecting to login...');
-          setTimeout(() => navigate('/login'), 3000);
+          setTimeout(() => navigate('/login?verified=true'), 3000);
         } else {
-          const data = await response.json();
           setMessage(data.error || 'Verification failed.');
         }
       } catch (error) {
@@ -47,3 +47,4 @@ const VerifyEmail = () => {
 };
 
 export default VerifyEmail;
+
