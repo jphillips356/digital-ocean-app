@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  final String baseUrl = 'http://localhost:5173'; 
+    final String baseUrl = 'http://10.0.2.2:5001/api'; 
 
   // Login function
   Future<bool> login(String login, String password) async {
@@ -13,7 +13,7 @@ class AuthService {
       body: jsonEncode({'login': login, 'password': password}),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       return true;
     } else {
       return false;
