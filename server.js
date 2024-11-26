@@ -184,7 +184,7 @@ app.post('/api/forgot-password', async (req, res) => {
       { $set: { ResetToken: resetToken, ResetTokenExpiry: resetTokenExpiry } }
     );
 
-    const resetLink = `https://whale-app-ambkm.ondigitalocean.app//reset-password?token=${resetToken}`;
+    const resetLink = `https://whale-app-ambkm.ondigitalocean.app/reset-password?token=${resetToken}`;
     await sendEmail(
       email,
       'Password Reset Request',
