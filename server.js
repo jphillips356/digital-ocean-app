@@ -83,7 +83,7 @@ app.post('/api/register', async (req, res) => {
     };
     await usersCollection.insertOne(newUser);
     
-    const verificationLink = `http://localhost:5000/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
     await sendEmail(
       email,
       'Verify Your Email',
