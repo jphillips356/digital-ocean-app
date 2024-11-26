@@ -10,6 +10,8 @@ import { addHabit, editHabit, deleteHabit, fetchHabits, completeHabit } from './
 import { Habit } from './types/habit'
 import { useNavigate } from "react-router-dom"
 import RaceTrack from './RaceTrack'
+import racecar from '../assets/racecar.png'
+import logo from '../assets/tracktion.png'
 
 export default function Component() {
   const [date, setDate] = useState<Date>(new Date())
@@ -172,7 +174,7 @@ export default function Component() {
       {/* Sidebar */}
       <div className="w-64 bg-[#64FCD9] text-black p-6 space-y-8">
         <img
-          src='../tracktion.png'
+          src={logo}
           alt="Tracktion logo"
           width={300}
           height={40}
@@ -364,7 +366,7 @@ export default function Component() {
               </div>
               {expandedHabit === habit._id && (
                 <div className="p-4 border-t">
-                  <RaceTrack streak={habit.streak} goal={habit.goal} carImage="../racecar.png" />
+                  <RaceTrack streak={habit.streak} goal={habit.goal} carImage={racecar} />
                 </div>
               )}
             </div>

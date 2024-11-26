@@ -15,6 +15,9 @@ import {
   FormHelperText,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import background from "../assets/background.png";
+import homeScreen from "../assets/home-screen.png";
+
 
 const theme = createTheme({
   typography: {
@@ -174,7 +177,7 @@ export default function LoginPage() {
           width: "100%",
           display: "flex",
           alignItems: "stretch",
-          backgroundImage: "url('../background.png')",
+          backgroundImage: {background},
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -193,7 +196,7 @@ export default function LoginPage() {
                 }}
               >
                 <img
-                  src="../home-screen.png"
+                  src={homeScreen}
                   alt="Workspace"
                   style={{
                     width: "100%",
