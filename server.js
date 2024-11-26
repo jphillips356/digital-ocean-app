@@ -149,7 +149,7 @@ app.post('/api/resend-verification', async (req, res) => {
       { $set: { VerificationToken: verificationToken } }
     );
 
-    const verificationLink = `http://localhost:5173/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
     await sendEmail(
       email,
       'Verify Your Email',
