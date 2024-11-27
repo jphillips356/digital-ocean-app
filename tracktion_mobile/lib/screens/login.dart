@@ -36,6 +36,7 @@ class _LoginPageState extends State<Login> {
     return Scaffold(
       appBar: AppBar(
         title: SvgPicture.asset('assets/images/Logo.svg', height: 40),
+        automaticallyImplyLeading: false,
       ),
       body: Stack(
         children: [

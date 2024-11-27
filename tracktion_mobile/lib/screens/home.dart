@@ -15,8 +15,12 @@ class _HomePageState extends State<Home> {
         title: const Text('Welcome!'),
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(onPressed: (){},
+          IconButton(onPressed: (){
+              // Navigate back to the login/register screen
+              Navigator.pushReplacementNamed(context, '/'); 
+              },
           icon: const Icon(Icons.logout),
+          tooltip: 'Logout',
           ) // IconButton
         ],
       ), // AppBar
