@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../auth_service.dart';
+import '../authService.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Login extends StatefulWidget {
@@ -86,7 +86,7 @@ class _LoginPageState extends State<Login> {
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Some Habits!',
+                    'some habits!',
                     style: TextStyle(
                       fontSize: 24.0,
                       fontFamily: 'RubikMono',

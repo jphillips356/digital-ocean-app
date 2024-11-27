@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tracktion_mobile/screens/addHabit.dart';
 import 'screens/login.dart';
 import 'screens/register.dart';
 import 'screens/home.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
       routes: {
         'register': (context) => const Register(),
         'home': (context) => const Home(),
+        'addHabit': (context) => const AddHabitScreen(),
       },
     );
   }

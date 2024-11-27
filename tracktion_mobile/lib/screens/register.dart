@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../auth_service.dart';
+import '../authService.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Register extends StatefulWidget {
@@ -37,6 +37,7 @@ class _RegisterPageState extends State<Register> {
     return Scaffold(
       appBar: AppBar(
         title: SvgPicture.asset('assets/images/Logo.svg', height: 40),
+        automaticallyImplyLeading: false,
       ),
       body: Stack(
         children: [
