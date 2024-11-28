@@ -92,7 +92,7 @@ class _HomePageState extends State<Home> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/addHabit').then((_) {
+          Navigator.pushNamed(context, 'addHabit').then((_) {
             _fetchHabits(); // Refresh the list when returning from the Add Habit screen
           });
         },

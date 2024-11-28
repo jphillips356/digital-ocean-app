@@ -5,62 +5,90 @@ class AuthService {
     final String baseUrl = 'http://10.0.2.2:5001/api'; 
 
   // Login function
-  Future<bool> login(String login, String password) async {
-    final url = Uri.parse('$baseUrl/login');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'login': login, 'password': password}),
-    );
+  Future<Map<String, dynamic>> login(String login, String password) async {
+  final url = Uri.parse('$baseUrl/login');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'login': login, 'password': password}),
+  );
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      return false;
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    return {'error': 'Incorrect password'};
+  } else if (response.statusCode == 404) {
+    return {'error': 'User not found'};
+  } else if (response.statusCode == 403) {
+    // Temporarily allow login even if email is not verified
+    final responseBody = jsonDecode(response.body);
+    if (responseBody['needsVerification'] ?? false) {
+      // Log in user regardless of verification
+      return {'message': 'Login successful (email not verified)', 'user': responseBody};
     }
-  }
-
-  // Register function
-  Future<bool> register(String firstName, String lastName, String login, String password) async {
-  final url = Uri.parse('$baseUrl/register');
-  print('Attempting to register with:');
-  print('URL: $url');
-  print('Payload: ${jsonEncode({
-    'firstName': firstName,
-    'lastName': lastName,
-    'login': login,
-    'password': password,
-  })}');
-
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'firstName': firstName,
-        'lastName': lastName,
-        'login': login,
-        'password': password,
-      }),
-    );
-
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
-    if (response.statusCode == 201) {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e) {
-    print('Error during registration: $e');
-    rethrow; // Optionally rethrow to handle further up the chain
+    return {'error': 'Email not verified'};
+  } else {
+    return {'error': 'An error occurred'};
   }
 }
 
+
+  // Register function
+  Future<bool> register(String username, String email, String firstName, String lastName, String password) async {
+    final url = Uri.parse('$baseUrl/register');
+    
+    // Prepare the payload to send in the request body
+    final payload = {
+      'Username': username,
+      'Email': email,
+      'FirstName': firstName,
+      'LastName': lastName,
+      'Password': password,
+    };
+
+    print('Attempting to register with:');
+    print('URL: $url');
+    print('Payload: ${jsonEncode(payload)}');
+
+    try {
+      // Send the POST request
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      // Check the response status
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        // Check if the user needs to verify their email
+        if (responseData['needsVerification'] == true) {
+          print('Registration successful. A verification email has been sent.');
+          return true; // Registration successful
+        }
+      } else if (response.statusCode == 409) {
+        final responseData = jsonDecode(response.body);
+        print('User exists but is not verified.');
+        return false; // User exists but not verified
+      } else if (response.statusCode == 400) {
+        final responseData = jsonDecode(response.body);
+        print('Username or email already taken.');
+        return false; // Username or email already taken
+      } else {
+        print('Failed to register: ${response.body}');
+        return false; // Other error
+      }
+    } catch (e) {
+      print('Error during registration: $e');
+      return false; // Error during request
+    }
+
+    return false; // Default return false if no conditions are met
+  }
+
 // Add habit function
-Future<bool> addHabit(Map<String, dynamic> habit) async {
-    final url = Uri.parse('$baseUrl/habits');
+Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
+    final url = Uri.parse('$baseUrl/habits?userId=$userId');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -82,7 +110,7 @@ Future<bool> addHabit(Map<String, dynamic> habit) async {
       final List habits = jsonDecode(response.body);
       return habits.cast<Map<String, dynamic>>();
     } else {
-      throw Exception('Failed to fetch habits');
+      throw Exception('Failed to fetch habits for user $userId');
     }
   }
 
@@ -99,7 +127,7 @@ Future<bool> addHabit(Map<String, dynamic> habit) async {
   }
 
   // Delete a habit function
-  Future<bool> deleteHabit(String habitId) async {
+  Future<bool> deleteHabit(int habitId) async {
     final url = Uri.parse('$baseUrl/habits/$habitId');
     final response = await http.delete(
       url,
@@ -109,10 +137,27 @@ Future<bool> addHabit(Map<String, dynamic> habit) async {
     return response.statusCode == 200;
   }
   
-  // Get user id function
+  // Method to fetch user ID
   Future<int> getUserId() async {
-  // Fetch user ID from local storage, or current user session
-  return 1; // Just a placeholder, replace with real logic
-}
+    try {
+      // Make a request to your backend to fetch the last user
+      final response = await http.get(Uri.parse('$baseUrl/login'));
+
+      if (response.statusCode == 200) {
+        // If the server returns a successful response (200), parse the user list
+        final List<dynamic> lastUser = json.decode(response.body);
+
+        // Calculate the new userID based on the last user's ID
+        return lastUser.isNotEmpty ? lastUser[0]['UserID'] + 1 : 1;
+      } else {
+        // Handle error if response status code is not 200
+        throw Exception('Failed to load last user');
+      }
+    } catch (e) {
+      // Handle any errors that might occur during the API request
+      print('Error fetching user ID: $e');
+      throw Exception('Error fetching user ID');
+    }
+  }
 
 }

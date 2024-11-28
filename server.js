@@ -1,208 +1,418 @@
-// Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { MongoClient, ObjectId } = require('mongodb');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const path = require('path');
-const MongoClient = require('mongodb').MongoClient;
 require('dotenv').config();
 
-// Initialize Express app
 const app = express();
-
-//const port = 8080;
 const port = 5001;
-
+//const port = 8080; 
 
 // Middleware
-app.use(cors({
-    origin: ['http://localhost:5173', 'https://whale-app-ambkm.ondigitalocean.app'],
-    credentials: true
-}));
-
+app.use(cors());
 app.use(bodyParser.json());
-
-// app.use(express.static(path.join(__dirname, 'frontend')));
-
-// if(process.env.NODE_ENV === 'production'){
-//     app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
-
-//     app.get('*', (req, res) => { 
-//         res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html')); 
-//     });
-// }
-
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
-
-app.get('*', (req, res) => { 
-   res.sendFile(path.join(__dirname, 'frontend/dist', 'frontend/dist/index.html')); 
-});
-
 
 // MongoDB connection
 const url = process.env.MONGODB_URL;
-//const url = 'mongodb+srv://jishdotcom:COP4331IsCool@cluster0.rqrdj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
-client.connect(err => {
-    if (err) {
-        console.error("MongoDB connection failed:", err);
-        process.exit(1); // Exit if there is a connection error
-    }
-    console.log("MongoDB connected successfully");
+let db;
+
+client.connect()
+  .then(() => {
+    console.log("Connected successfully to MongoDB");
+    db = client.db('LargeProject');
+  })
+  .catch(err => {
+    console.error("MongoDB connection error:", err);
+    process.exit(1);
+  });
+
+// Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
+// Helper function to send email
+async function sendEmail(to, subject, text) {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to,
+      subject,
+      text
+    });
+    console.log('Email sent successfully');
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+}
+
+// Registration route
+app.post('/api/register', async (req, res) => {
+  const { username, email, password, firstName, lastName } = req.body;
+  try {
+    const usersCollection = db.collection('users');
+    const existingUser = await usersCollection.findOne({ $or: [{ Username: username }, { Email: email }] });
+    if (existingUser) {
+      if (!existingUser.IsVerified) {
+        return res.status(409).json({ success: false, error: 'User exists but is not verified', needsVerification: true });
+      }
+      return res.status(400).json({ success: false, error: 'Username or email already taken' });
+    }
+    const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
+    const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
+    const verificationToken = crypto.randomBytes(20).toString('hex');
+    const newUser = {
+      Username: username,
+      Email: email,
+      Password: password,
+      FirstName: firstName,
+      LastName: lastName,
+      UserID: newUserID,
+      VerificationToken: verificationToken,
+      IsVerified: false
+    };
+    await usersCollection.insertOne(newUser);
+    
+    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+    await sendEmail(
+      email,
+      'Verify Your Email',
+      `Please click on the following link to verify your email: ${verificationLink}`
+    );
+    
+    res.status(201).json({ success: true, error: '', needsVerification: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, error: 'An error occurred during registration' });
+  }
+});
+
+app.get('/api/verify-email', async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ success: false, error: 'Invalid or missing token' });
+  }
+
+  try {
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ VerificationToken: token });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Invalid token or user not found' });
+    }
+
+    // Update the user's IsVerified status
+    await usersCollection.updateOne(
+      { VerificationToken: token },
+      { $set: { IsVerified: true }, $unset: { VerificationToken: '' } }
+    );
+
+    // Instead of serving a static HTML file, send a JSON response
+    res.status(200).json({ success: true, message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.status(500).json({ success: false, error: 'An error occurred during verification' });
+  }
+});
+
+
+
+// Resend verification email route
+app.post('/api/resend-verification', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ Email: email });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.IsVerified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    const verificationToken = crypto.randomBytes(20).toString('hex');
+    await usersCollection.updateOne(
+      { _id: user._id },
+      { $set: { VerificationToken: verificationToken } }
+    );
+
+    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+    await sendEmail(
+      email,
+      'Verify Your Email',
+      `Please click on the following link to verify your email: ${verificationLink}`
+    );
+
+    res.json({ message: 'Verification email resent successfully' });
+  } catch (error) {
+    console.error('Error resending verification email:', error);
+    res.status(500).json({ error: 'An error occurred while resending the verification email' });
+  }
+});
+
+app.post('/api/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ Email: email });
+    
+    console.log('Forgot password request for email:', email);
+    console.log('User found:', user);
+
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+    await usersCollection.updateOne(
+      { _id: user._id },
+      { $set: { ResetToken: resetToken, ResetTokenExpiry: resetTokenExpiry } }
+    );
+
+    const resetLink = `https://whale-app-ambkm.ondigitalocean.app/reset-password?token=${resetToken}`;
+    await sendEmail(
+      email,
+      'Password Reset Request',
+      `Please click on the following link to reset your password: ${resetLink}`
+    );
+
+    console.log('Password reset email sent successfully');
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    res.status(500).json({ error: 'An error occurred while processing your request' });
+  }
+});
 
 app.post('/api/login', async (req, res) => {
-    // Incoming: login, password
-    const { login, password } = req.body;
+  const { login, password } = req.body;
 
-    try {
-        const db = client.db('LargeProject');
-        
-        // Check if user exists by login
-        const user = await db.collection('users').findOne({ Login: login });
-        console.log(user)
-        if (!user) {
-            // User not found
-            return res.status(404).json({ id: -1, firstName: '', lastName: '', error: 'User not found' });
-        }
+  try {
+    const user = await db.collection('users').findOne({
+      $or: [{ Username: login }, { Email: login }]
+    });
+    
+    console.log('Login attempt for:', login);
+    console.log('User found:', user);
 
-        // Check if password matches
-        if (user.Password !== password) {
-            // Password does not match
-            return res.status(401).json({ id: -1, firstName: '', lastName: '', error: 'Incorrect password' });
-        }
-
-        // Successful login
-        const { UserID, FirstName, LastName } = user;
-        res.status(200).json({ id: UserID, firstName: FirstName, lastName: LastName, error: '' });
-    } catch (error) {
-        console.error('Server error:', error);
-        res.status(500).json({ id: -1, firstName: '', lastName: '', error: 'An error occurred' });
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ id: -1, firstName: '', lastName: '', error: 'User not found' });
     }
+
+    console.log('Is user verified:', user.IsVerified);
+    console.log('Provided password:', password);
+    console.log('Stored password:', user.Password);
+
+    if (user.Password !== password) {
+      console.log('Incorrect password');
+      return res.status(401).json({ id: -1, firstName: '', lastName: '', error: 'Incorrect password' });
+    }
+
+    if (!user.IsVerified) {
+      console.log('User not verified');
+      return res.status(403).json({ id: -1, firstName: '', lastName: '', error: 'Email not verified', needsVerification: true });
+    }
+   
+    const { UserID, FirstName, LastName } = user;
+    console.log('Login successful for user:', UserID);
+    res.status(200).json({ id: UserID, firstName: FirstName, lastName: LastName, error: '' });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ id: -1, firstName: '', lastName: '', error: 'An error occurred' });
+  }
 });
 
+app.post('/api/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+  try {
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({
+      ResetToken: token,
+      ResetTokenExpiry: { $gt: Date.now() }
+    });
 
-app.post('/api/register', async (req, res) => {
-    let error = '';
-    // Destructure the incoming request
-    const { login, password, firstName, lastName } = req.body;
-    try {
-        const db = client.db('LargeProject');
-        const usersCollection = db.collection('users');
-        // Check if the login already exists
-        const existingUser = await usersCollection.findOne({ Login: login });
-        if (existingUser) {
-            error = 'Username already taken';
-            return res.status(400).json({ success: false, error });
-        }
-        // Generate a new UserID (assuming it’s the next sequential ID)
-        const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
-        const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
-        // Insert the new user
-        const newUser = {
-            Login: login,
-            Password: password, // Note: Hashing is recommended here for security.
-            FirstName: firstName,
-            LastName: lastName,
-            UserID: newUserID
-        };
-        await usersCollection.insertOne(newUser);
-        // Respond with success message
-        res.status(201).json({ success: true, error: '' });
-    } catch (e) {
-        console.error(e);
-        error = 'An error occurred during registration';
-        res.status(500).json({ success: false, error });
+    console.log('Reset password attempt for token:', token);
+    console.log('User found:', user);
+
+    if (!user) {
+      console.log('Invalid or expired reset token');
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
     }
+    
+    console.log('User before password reset:', user);
+
+    const result = await usersCollection.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: { Password: newPassword },
+        $unset: { ResetToken: "", ResetTokenExpiry: "" }
+      },
+      { returnDocument: 'after' }
+    );
+
+    console.log('User after password reset:', result.value);
+
+    if (result.value) {
+      console.log('Password reset successful');
+      res.json({ message: 'Password reset successful', userId: user.UserID });
+    } else {
+      console.log('Failed to update user password');
+      res.status(500).json({ error: 'Failed to update user password' });
+    }
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ error: 'An error occurred while resetting your password' });
+  }
 });
 
-app.post('/api/habits', async (req, res) => {
-    const { name, measurementType, measurementUnit, frequency } = req.body;
-
-    if (!name || !measurementType || !measurementUnit || !frequency) {
-        return res.status(400).json({ error: "All fields are required" });
-    }
-
-    const habit = { name, measurementType, measurementUnit, frequency };
-    try {
-        const db = client.db('LargeProject');
-        const habitsCollection = db.collection('habits');
-        const result = await habitsCollection.insertOne(habit);
-        res.status(201).json({ success: true, habitId: result.insertedId });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, error: "Could not create habit" });
-    }
-});
-
-
-
-// Get all habits
+// Get habits route
 app.get('/api/habits', async (req, res) => {
-    try {
-        const db = client.db('LargeProject');
-        const habitsCollection = db.collection('habits');
-        const habits = await habitsCollection.find().toArray();
-        res.status(200).json(habits);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Could not retrieve habits" });
+  try {
+    const { UserID } = req.query;
+
+    if (!UserID) {
+      return res.status(400).json({ error: 'UserID is required to fetch habits' });
     }
+
+    const habits = await db.collection('habits').find({ UserID: parseInt(UserID) }).toArray();
+    res.json(habits);
+  } catch (error) {
+    console.error('Error fetching habits:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// Update a habit by ID
+// Create habit route
+app.post('/api/habits', async (req, res) => {
+  try {
+    const { name, measurementType, measurementUnit, frequency, goal, UserID } = req.body;
+
+    if (!UserID) {
+      return res.status(400).json({ error: 'UserID is required to create a habit' });
+    }
+
+    const habitGoal = goal || 30; // Default goal is 30 if not specified
+
+    const newHabit = {
+      name,
+      measurementType,
+      measurementUnit,
+      frequency,
+      streak: 0,
+      goal: habitGoal,
+      UserID
+    };
+
+    const result = await db.collection('habits').insertOne(newHabit);
+    res.status(201).json({ ...newHabit, _id: result.insertedId });
+  } catch (error) {
+    console.error('Error creating habit:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update habit route
 app.put('/api/habits/:id', async (req, res) => {
+  try {
     const { id } = req.params;
-    const { name, measurementType } = req.body;
-
-    try {
-        const db = client.db('LargeProject');
-        const habitsCollection = db.collection('habits');
-        const result = await habitsCollection.updateOne(
-            { _id: new MongoClient.ObjectId(id) },
-            { $set: { name, measurementType } }
-        );
-
-        if (result.matchedCount === 0) {
-            return res.status(404).json({ error: "Habit not found" });
-        }
-
-        res.status(200).json({ success: true });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Could not update habit" });
+    const { name, measurementType, measurementUnit, frequency, streak, goal } = req.body;
+    const result = await db.collection('habits').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { name, measurementUnit, frequency, streak, goal } },
+      { returnDocument: 'after' }
+    );
+    if (result.value) {
+      res.json(result.value);
+    } else {
+      res.status(404).json({ error: 'Habit not found' });
     }
+  } catch (error) {
+    console.error('Error updating habit:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// Delete a habit by ID
+// Delete habit route
 app.delete('/api/habits/:id', async (req, res) => {
+  try {
     const { id } = req.params;
-
-    try {
-        const db = client.db('LargeProject');
-        const habitsCollection = db.collection('habits');
-        const result = await habitsCollection.deleteOne({ _id: new MongoClient.ObjectId(id) });
-
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ error: "Habit not found" });
-        }
-
-        res.status(200).json({ success: true });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Could not delete habit" });
+    const result = await db.collection('habits').deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.json({ message: 'Habit deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Habit not found' });
     }
+  } catch (error) {
+    console.error('Error deleting habit:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
+// Complete habit route
+app.put('/api/habits/:id/complete', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
 
+    if (!habit) {
+      return res.status(404).json({ error: 'Habit not found' });
+    }
 
+    const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted) : null;
+    const currentDate = new Date();
+
+    if (lastCompletedDate && 
+        lastCompletedDate.getFullYear() === currentDate.getFullYear() &&
+        lastCompletedDate.getMonth() === currentDate.getMonth() &&
+        lastCompletedDate.getDate() === currentDate.getDate()) {
+      return res.status(400).json({ error: 'Habit already completed today' });
+    }
+
+    const result = await db.collection('habits').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          lastCompleted: currentDate,
+          streak: habit.streak + 1
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (result.value) {
+      res.json(result.value);
+    } else {
+      res.status(404).json({ error: 'Habit not found' });
+    }
+  } catch (error) {
+    console.error('Error completing habit:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
 // Serve index.html for the root route 
-app.get('/', (req, res) => { 
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-  });
+app.get('*', (req, res) => { 
+  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
+});
 
 // Start server
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });

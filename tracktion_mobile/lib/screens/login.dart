@@ -10,24 +10,43 @@ class Login extends StatefulWidget {
 }
 
 class _LoginPageState extends State<Login> {
+  final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
-
+  
   Future<void> _handleLogin() async {
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    final success = await _authService.login(email, password);
+    // Call the login API
+    final result = await _authService.login(email, password);
 
-    if (success) {
-      // Navigate to the next screen if login is successful
-      Navigator.pushNamed(context, 'home');
-    } else {
-      // Show an error message if login fails
+    // Handle different result cases based on the response
+    if (result.containsKey('error')) {
+      // If the response contains an error, show the error message
+      String errorMessage = result['error'];
+      
+      if (errorMessage == 'Incorrect password') {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (errorMessage == 'User not found') {
+        errorMessage = 'No account found with this username/email.';
+      } else if (errorMessage == 'Email not verified') {
+        errorMessage = 'Your email is not verified. Please check your inbox.';
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please check your credentials.')),
+        SnackBar(content: Text(errorMessage)),
       );
+    } else {
+      // If login is successful, navigate to the home screen with user data
+      final userId = result['id'];
+      final firstName = result['firstName'];
+      final lastName = result['lastName'];
+
+      // You can store this user data in your app's state or shared preferences for later use
+
+      // Navigate to the home screen
+      Navigator.pushNamed(context, 'home');
     }
   }
 
@@ -103,7 +122,7 @@ class _LoginPageState extends State<Login> {
                     textAlign: TextAlign.center,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      hintText: 'Enter Username',
+                      hintText: 'Enter Username or Email',
                       hintStyle: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 16.0,

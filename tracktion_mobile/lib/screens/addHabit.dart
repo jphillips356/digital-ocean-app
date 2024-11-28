@@ -45,17 +45,16 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       final userId = await _authService.getUserId(); // Assuming this function fetches the user ID
       
       final habit = {
-        'name': _nameController.text,
-        'measurementType': selectedMeasurementType,
-        'measurementUnit': _measurementOptionsController.text,
-        'amount': _amountController.text,
-        'frequency': _frequencyController.text,
-        'frequencyPer': _frequencyPerController.text,
-        'UserID': userId,  // Dynamically fetched user ID
-        'goal': int.parse(_goalController.text),
+      'name': _nameController.text,
+      'measurementType': selectedMeasurementType,
+      'measurementUnit': _measurementOptionsController.text,
+      'amount': _amountController.text,
+      'frequency': _frequencyController.text,
+      'frequencyPer': _frequencyPerController.text,
+      'goal': int.parse(_goalController.text),
       };
 
-      final success = await _authService.addHabit(habit);
+      final success = await _authService.addHabit(habit, userId); 
       if (success) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
