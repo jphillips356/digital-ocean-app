@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../authService.dart';
 
 class AddHabitScreen extends StatefulWidget {
-  const AddHabitScreen({super.key});
+  const AddHabitScreen({Key? key}) : super(key: key);
 
   @override
   State<AddHabitScreen> createState() => _AddHabitScreenState();
@@ -19,7 +19,6 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   final TextEditingController _frequencyPerController = TextEditingController();
   final TextEditingController _goalController = TextEditingController();
 
-  // Available options for measurement and frequency
   final Map<String, List<String>> measurementOptions = {
     'distance': ['Miles', 'Kilometers'],
     'time': ['Seconds', 'Minutes', 'Hours'],
@@ -32,40 +31,62 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   String? selectedMeasurementType;
   List<String> availableOptions = [];
 
-  // This function will update the available options based on the selected measurement type
   void _updateMeasurementOptions(String type) {
     setState(() {
+      selectedMeasurementType = type;
       availableOptions = measurementOptions[type] ?? [];
+      _measurementOptionsController.clear();
     });
   }
 
   Future<void> _addHabit() async {
     if (_formKey.currentState!.validate()) {
-      // Fetching the user ID dynamically from the auth service
-      final userId = await _authService.getUserId(); // Assuming this function fetches the user ID
-      
-      final habit = {
-      'name': _nameController.text,
-      'measurementType': selectedMeasurementType,
-      'measurementUnit': _measurementOptionsController.text,
-      'amount': _amountController.text,
-      'frequency': _frequencyController.text,
-      'frequencyPer': _frequencyPerController.text,
-      'goal': int.parse(_goalController.text),
-      };
+      try {
+        final userId = await _authService.getUserId();
+        
+        final habit = {
+          'name': _nameController.text,
+          'measurementType': selectedMeasurementType,
+          'measurementUnit': _measurementOptionsController.text,
+          'amount': double.parse(_amountController.text),
+          'frequency': int.parse(_frequencyController.text),
+          'frequencyPer': _frequencyPerController.text,
+          'goal': int.parse(_goalController.text),
+        };
 
-      final success = await _authService.addHabit(habit, userId); 
-      if (success) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Habit added successfully!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add habit')),
-        );
+        final success = await _authService.addHabit(habit, userId);
+        if (success) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Habit added successfully!')),
+          );
+        } else {
+          _showErrorDialog('Failed to add habit');
+        }
+      } catch (e) {
+        _showErrorDialog('An error occurred: ${e.toString()}');
       }
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -83,23 +104,20 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 decoration: const InputDecoration(labelText: 'Habit Name'),
                 validator: (value) => value!.isEmpty ? 'Enter a Name' : null,
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedMeasurementType,
-                onChanged: (value) {
-                  setState(() {
-                    selectedMeasurementType = value;
-                    _updateMeasurementOptions(value!); // Update options when measurement type changes
-                  });
-                },
-                items: ['distance', 'time', 'weight', 'amount']
+                onChanged: (value) => _updateMeasurementOptions(value!),
+                items: measurementOptions.keys
                     .map((type) => DropdownMenuItem<String>(
                           value: type,
-                          child: Text(type), // No need to capitalize
+                          child: Text(type.capitalize()),
                         ))
                     .toList(),
                 decoration: const InputDecoration(labelText: 'Measurement Type'),
                 validator: (value) => value == null ? 'Select a Type' : null,
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _measurementOptionsController.text.isEmpty ? null : _measurementOptionsController.text,
                 onChanged: (value) {
@@ -116,26 +134,29 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 decoration: const InputDecoration(labelText: 'Measurement Unit'),
                 validator: (value) => value == null || value.isEmpty ? 'Select Unit' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
                 decoration: const InputDecoration(labelText: 'Amount'),
-                validator: (value) => value!.isEmpty ? 'Enter Amount' : null,
-              ),
-              TextFormField(
-                controller: _frequencyController,
-                decoration: const InputDecoration(labelText: 'Frequency'),
-                keyboardType: TextInputType.number, // Ensure that only numbers are input
+                keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Enter Frequency';
-                  }
-                  // Optionally, you can validate if the value is a valid number
-                  if (int.tryParse(value) == null) {
-                    return 'Enter a valid number';
-                  }
+                  if (value!.isEmpty) return 'Enter Amount';
+                  if (double.tryParse(value) == null) return 'Enter a valid number';
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _frequencyController,
+                decoration: const InputDecoration(labelText: 'Frequency'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value!.isEmpty) return 'Enter Frequency';
+                  if (int.tryParse(value) == null) return 'Enter a valid number';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _frequencyPerController.text.isEmpty ? null : _frequencyPerController.text,
                 onChanged: (value) {
@@ -146,17 +167,22 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 items: frequencyPerOptions
                     .map((value) => DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(value.capitalize()),
                         ))
                     .toList(),
                 decoration: const InputDecoration(labelText: 'Per'),
                 validator: (value) => value == null || value.isEmpty ? 'Select Per' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _goalController,
                 decoration: const InputDecoration(labelText: 'Goal (days)'),
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Enter Goal' : null,
+                validator: (value) {
+                  if (value!.isEmpty) return 'Enter Goal';
+                  if (int.tryParse(value) == null) return 'Enter a valid number';
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -168,5 +194,11 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
         ),
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1)}";
   }
 }

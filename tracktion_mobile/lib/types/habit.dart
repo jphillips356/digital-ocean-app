@@ -1,3 +1,4 @@
+// Habit(s) info
 class Habit {
   final String id;
   final String name;

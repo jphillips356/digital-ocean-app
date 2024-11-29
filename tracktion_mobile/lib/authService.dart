@@ -20,18 +20,21 @@ class AuthService {
   } else if (response.statusCode == 404) {
     return {'error': 'User not found'};
   } else if (response.statusCode == 403) {
-    // Temporarily allow login even if email is not verified
     final responseBody = jsonDecode(response.body);
     if (responseBody['needsVerification'] ?? false) {
-      // Log in user regardless of verification
-      return {'message': 'Login successful (email not verified)', 'user': responseBody};
+      // Treat it as a successful login but inform about verification
+      return {
+        'id': responseBody['id'],
+        'firstName': responseBody['firstName'],
+        'lastName': responseBody['lastName'],
+        'message': 'Email not verified'
+      };
     }
     return {'error': 'Email not verified'};
   } else {
     return {'error': 'An error occurred'};
   }
 }
-
 
   // Register function
   Future<bool> register(String username, String email, String firstName, String lastName, String password) async {

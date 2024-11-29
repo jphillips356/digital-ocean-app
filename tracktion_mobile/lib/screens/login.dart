@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../authService.dart';
+import 'habits.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Login extends StatefulWidget {
@@ -14,7 +15,7 @@ class _LoginPageState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
-  Future<void> _handleLogin() async {
+    Future<void> _handleLogin() async {
     final email = _emailController.text;
     final password = _passwordController.text;
 
@@ -25,30 +26,43 @@ class _LoginPageState extends State<Login> {
     if (result.containsKey('error')) {
       // If the response contains an error, show the error message
       String errorMessage = result['error'];
-      
+
       if (errorMessage == 'Incorrect password') {
         errorMessage = 'Incorrect password. Please try again.';
       } else if (errorMessage == 'User not found') {
         errorMessage = 'No account found with this username/email.';
-      } else if (errorMessage == 'Email not verified') {
-        errorMessage = 'Your email is not verified. Please check your inbox.';
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
-    } else {
-      // If login is successful, navigate to the home screen with user data
-      final userId = result['id'];
-      final firstName = result['firstName'];
-      final lastName = result['lastName'];
 
-      // You can store this user data in your app's state or shared preferences for later use
-
-      // Navigate to the home screen
-      Navigator.pushNamed(context, 'home');
+      // If it's an error other than "email not verified," stop here
+      if (errorMessage != 'Email not verified') {
+        return;
+      }
     }
+
+    // Proceed to home screen regardless of email verification status
+    _navigateToHome(result);
   }
+
+void _navigateToHome(Map<String, dynamic> user) {
+  final userId = user['id'];
+  final firstName = user['firstName'];
+  final lastName = user['lastName'];
+
+  // Store user data or use it as needed
+  print('User ID: $userId, Name: $firstName $lastName');
+
+  // Navigate to the home screen
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => HabitsScreen(userId: userId),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
