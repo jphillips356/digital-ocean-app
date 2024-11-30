@@ -3,26 +3,28 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final int userId; // Declare userId
+  const Home({super.key, required this.userId}); // Assign userId
 
-  @override  
+  @override
   State<Home> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<Home> {
-  List<dynamic> _habitList = [];  // List to hold habits from backend
-  bool _isLoading = true;  // Track loading state
+  List<dynamic> _habitList = []; // List to hold habits from backend
+  bool _isLoading = true; // Track loading state
 
   @override
   void initState() {
     super.initState();
-    _fetchHabits();  // Fetch the habits when the screen is initialized
+    _fetchHabits(); // Fetch the habits when the screen is initialized
   }
 
   // Function to fetch habits from backend
   Future<void> _fetchHabits() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:5001/api/habits'));
+      final response =
+          await http.get(Uri.parse('http://192.168.1.135:5001/api/habits'));
 
       if (response.statusCode == 200) {
         // If server returns 200 OK, parse the habits
@@ -56,7 +58,7 @@ class _HomePageState extends State<Home> {
           IconButton(
             onPressed: () {
               // Navigate back to the login/register screen
-              Navigator.pushReplacementNamed(context, '/'); 
+              Navigator.pushReplacementNamed(context, '/');
             },
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
@@ -64,7 +66,9 @@ class _HomePageState extends State<Home> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator()) // Show a loading spinner while fetching
+          ? const Center(
+              child:
+                  CircularProgressIndicator()) // Show a loading spinner while fetching
           : _habitList.isEmpty
               ? const Center(
                   child: Text(
@@ -77,7 +81,8 @@ class _HomePageState extends State<Home> {
                   itemBuilder: (context, index) {
                     final habit = _habitList[index];
                     return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
                       child: ListTile(
                         title: Text(
                           habit['name'],

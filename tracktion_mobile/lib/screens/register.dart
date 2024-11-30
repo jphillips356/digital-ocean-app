@@ -13,7 +13,7 @@ class _RegisterPageState extends State<Register> {
   final AuthService _authService = AuthService();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();  // Added Email controller
+  final _emailController = TextEditingController(); // Added Email controller
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -31,14 +31,17 @@ class _RegisterPageState extends State<Register> {
       if (result) {
         // If registration is successful
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration successful. Please verify your email.")),
+          const SnackBar(
+              content:
+                  Text("Registration successful. Please verify your email.")),
         );
         // Optionally, navigate to the login page
-        // Navigator.pushNamed(context, '/login');
+        Navigator.pushNamed(context, '/login');
       } else {
         // Show appropriate error messages
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration failed. Please try again.")),
+          const SnackBar(
+              content: Text("Registration failed. Please try again.")),
         );
       }
     } catch (e) {
@@ -75,18 +78,18 @@ class _RegisterPageState extends State<Register> {
           ),
           // Foreground content
           Padding(
-            padding: const EdgeInsets.all(30.0), // Added padding around the entire body
+            padding: const EdgeInsets.all(
+                30.0), // Added padding around the entire body
             child: Column(
               children: [
                 const SizedBox(height: 30.0), // Space above the Register text
                 const Text(
                   'Register',
                   style: TextStyle(
-                    fontSize: 38.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontFamily: 'RubikMono'
-                  ),
+                      fontSize: 38.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontFamily: 'RubikMono'),
                 ),
                 const SizedBox(height: 20.0),
                 // First Name Text Field
@@ -103,8 +106,8 @@ class _RegisterPageState extends State<Register> {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
@@ -125,8 +128,8 @@ class _RegisterPageState extends State<Register> {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
@@ -148,8 +151,8 @@ class _RegisterPageState extends State<Register> {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
@@ -171,8 +174,8 @@ class _RegisterPageState extends State<Register> {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
@@ -194,8 +197,8 @@ class _RegisterPageState extends State<Register> {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
@@ -210,7 +213,8 @@ class _RegisterPageState extends State<Register> {
                     color: const Color.fromARGB(255, 100, 252, 217),
                     borderRadius: BorderRadius.circular(30.0),
                     child: MaterialButton(
-                      onPressed: _register, // Trigger the register function here
+                      onPressed:
+                          _register, // Trigger the register function here
                       minWidth: 200.0,
                       height: 42.0,
                       child: const Text(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../authService.dart';
 import 'habits.dart';
+import 'package:tracktion_mobile/screens/home.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Login extends StatefulWidget {
@@ -14,8 +15,30 @@ class _LoginPageState extends State<Login> {
   final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
-    Future<void> _handleLogin() async {
+
+  Future<Map<String, dynamic>?> getUserDetails(String email) async {
+    Map<String, dynamic>? user = await _authService.fetchUserDetails(email);
+
+    if (user != null && !user.containsKey('error')) {
+      // Extract user properties (optional step to simplify output if needed)
+      final String firstName = user['firstName'];
+      final String lastName = user['lastName'];
+      final int userID = user['userID'];
+
+      return {
+        'firstName': firstName,
+        'lastName': lastName,
+        'userID': userID,
+      };
+    } else {
+      // Return null or an appropriate error map for failure
+      return null;
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    // Debug log
+
     final email = _emailController.text;
     final password = _passwordController.text;
 
@@ -38,31 +61,44 @@ class _LoginPageState extends State<Login> {
       );
 
       // If it's an error other than "email not verified," stop here
-      if (errorMessage != 'Email not verified') {
-        return;
-      }
+      //if (errorMessage != 'Email not verified') {
+      //return;
+//}
     }
 
-    // Proceed to home screen regardless of email verification status
-    _navigateToHome(result);
+    // Fetch user details
+    Map<String, dynamic>? userInfo = await getUserDetails(email);
+
+    if (userInfo == null) {
+      // Show an error if user details could not be fetched
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch user details.')),
+      );
+      return;
+    }
+
+    // Proceed to the home screen with user information
+    _navigateToHome(userInfo);
   }
 
-void _navigateToHome(Map<String, dynamic> user) {
-  final userId = user['id'];
-  final firstName = user['firstName'];
-  final lastName = user['lastName'];
+  void _navigateToHome(Map<String, dynamic> user) {
+    print('Sign In button pressed');
+    final userId = user['userID'];
+    final firstName = user['firstName'];
+    final lastName = user['lastName'];
 
-  // Store user data or use it as needed
-  print('User ID: $userId, Name: $firstName $lastName');
+    // Store user data or use it as needed
+    print('User ID: $userId, Name: $firstName $lastName');
 
-  // Navigate to the home screen
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => HabitsScreen(userId: userId),
-    ),
-  );
-}
+    // Navigate to the home screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            Home(userId: userId), // Update Home to accept arguments if needed
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +125,8 @@ void _navigateToHome(Map<String, dynamic> user) {
           ),
           // Foreground content
           Padding(
-            padding: const EdgeInsets.all(30.0), // Added padding around the entire body
+            padding: const EdgeInsets.all(
+                30.0), // Added padding around the entire body
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -128,9 +165,11 @@ void _navigateToHome(Map<String, dynamic> user) {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20.0), // Space between the text and username field
+                const SizedBox(
+                    height: 20.0), // Space between the text and username field
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0), // Adjust the bottom padding
+                  padding: const EdgeInsets.only(
+                      bottom: 20.0), // Adjust the bottom padding
                   child: TextFormField(
                     controller: _emailController,
                     textAlign: TextAlign.center,
@@ -143,8 +182,8 @@ void _navigateToHome(Map<String, dynamic> user) {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
@@ -153,7 +192,8 @@ void _navigateToHome(Map<String, dynamic> user) {
                 ),
                 const SizedBox(height: 5.0),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0), // Adjust the bottom padding
+                  padding: const EdgeInsets.only(
+                      bottom: 10.0), // Adjust the bottom padding
                   child: TextField(
                     controller: _passwordController,
                     textAlign: TextAlign.center,
@@ -166,15 +206,17 @@ void _navigateToHome(Map<String, dynamic> user) {
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
-                      contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 30.0), // Reduced space between text fields and buttons
+                const SizedBox(
+                    height:
+                        30.0), // Reduced space between text fields and buttons
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Material(

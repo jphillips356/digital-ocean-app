@@ -2,44 +2,75 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-    final String baseUrl = 'http://10.0.2.2:5001/api'; 
+  final String baseUrl = 'http://192.168.1.135:5001/api';
 
   // Login function
   Future<Map<String, dynamic>> login(String login, String password) async {
-  final url = Uri.parse('$baseUrl/login');
-  final response = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'login': login, 'password': password}),
-  );
+    final url = Uri.parse('$baseUrl/login');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'login': login, 'password': password}),
+    );
 
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  } else if (response.statusCode == 401) {
-    return {'error': 'Incorrect password'};
-  } else if (response.statusCode == 404) {
-    return {'error': 'User not found'};
-  } else if (response.statusCode == 403) {
-    final responseBody = jsonDecode(response.body);
-    if (responseBody['needsVerification'] ?? false) {
-      // Treat it as a successful login but inform about verification
-      return {
-        'id': responseBody['id'],
-        'firstName': responseBody['firstName'],
-        'lastName': responseBody['lastName'],
-        'message': 'Email not verified'
-      };
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 401) {
+      return {'error': 'Incorrect password'};
+    } else if (response.statusCode == 404) {
+      return {'error': 'User not found'};
+    } else if (response.statusCode == 403) {
+      final responseBody = jsonDecode(response.body);
+      if (responseBody['needsVerification'] ?? false) {
+        // Treat it as a successful login but inform about verification
+        return {
+          'id': responseBody['id'],
+          'firstName': responseBody['firstName'],
+          'lastName': responseBody['lastName'],
+          'message': 'Email not verified'
+        };
+      }
+      return {'error': 'Email not verified'};
+    } else {
+      return {'error': 'An error occurred'};
     }
-    return {'error': 'Email not verified'};
-  } else {
-    return {'error': 'An error occurred'};
   }
-}
+
+  Future<Map<String, dynamic>> fetchUserDetails(String email) async {
+    final url = Uri.parse(
+        '$baseUrl/user-details'); // Replace $baseUrl with your API base URL
+    final response = await http.get(
+      url.replace(
+          queryParameters: {'email': email}), // Add email as a query parameter
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      // Successful response
+      final responseBody = jsonDecode(response.body);
+      if (responseBody['success'] == true) {
+        return {
+          'firstName': responseBody['data']['firstName'],
+          'lastName': responseBody['data']['lastName'],
+          'userID': responseBody['data']['userID'],
+        };
+      } else {
+        return {'error': responseBody['error']};
+      }
+    } else if (response.statusCode == 404) {
+      // User not found
+      return {'error': 'User not found'};
+    } else {
+      // Other errors
+      return {'error': 'An error occurred'};
+    }
+  }
 
   // Register function
-  Future<bool> register(String username, String email, String firstName, String lastName, String password) async {
+  Future<bool> register(String username, String email, String firstName,
+      String lastName, String password) async {
     final url = Uri.parse('$baseUrl/register');
-    
+
     // Prepare the payload to send in the request body
     final payload = {
       'Username': username,
@@ -90,7 +121,7 @@ class AuthService {
   }
 
 // Add habit function
-Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
+  Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
     final url = Uri.parse('$baseUrl/habits?userId=$userId');
     final response = await http.post(
       url,
@@ -98,7 +129,7 @@ Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
       body: jsonEncode(habit),
     );
 
-    return response.statusCode == 201; 
+    return response.statusCode == 201;
   }
 
   // Fetch habits function
@@ -126,7 +157,7 @@ Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
       body: jsonEncode(updates),
     );
 
-    return response.statusCode == 200; 
+    return response.statusCode == 200;
   }
 
   // Delete a habit function
@@ -139,7 +170,7 @@ Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
 
     return response.statusCode == 200;
   }
-  
+
   // Method to fetch user ID
   Future<int> getUserId() async {
     try {
@@ -162,5 +193,4 @@ Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
       throw Exception('Error fetching user ID');
     }
   }
-
 }
