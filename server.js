@@ -56,6 +56,36 @@ async function sendEmail(to, subject, text) {
   }
 }
 
+app.get('/api/user-details', async (req, res) => {
+  const { email } = req.query; // Expecting email as a query parameter
+
+  try {
+    const usersCollection = db.collection('users');
+
+    // Find user by email
+    const user = await usersCollection.findOne({ Email: email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Respond with the desired user details
+    const { FirstName, LastName, UserID } = user;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        firstName: FirstName,
+        lastName: LastName,
+        userID: UserID,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'An error occurred while fetching user details' });
+  }
+});
+
 // Registration route
 app.post('/api/register', async (req, res) => {
   const { username, email, password, firstName, lastName } = req.body;
