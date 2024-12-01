@@ -341,13 +341,13 @@ app.get('/api/habits', async (req, res) => {
 
 // Create habit route
 app.post('/api/habits', async (req, res) => {
+  console.log('Request Body:', req.body);
   try {
     const { name, measurementType, measurementUnit, frequency, goal, UserID } = req.body;
 
     if (!UserID) {
       return res.status(400).json({ error: 'UserID is required to create a habit' });
     }
-
     const habitGoal = goal || 30; // Default goal is 30 if not specified
 
     const newHabit = {

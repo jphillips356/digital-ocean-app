@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:tracktion_mobile/screens/addHabit.dart';
 
 class Home extends StatefulWidget {
   final int userId;
@@ -193,7 +194,13 @@ class _HomePageState extends State<Home> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, 'addHabit').then((_) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AddHabitScreen(userId: widget.userId), // Pass userId here
+            ),
+          ).then((_) {
             _fetchHabits();
           });
         },
@@ -241,10 +248,10 @@ class RaceTrack extends StatelessWidget {
             left: progress,
             top: 0,
             child: Transform.translate(
-              offset: const Offset(-12, 6),
+              offset: const Offset(-8, 6),
               child: const Icon(
                 Icons.directions_car,
-                size: 30,
+                size: 25,
                 color: Colors.black,
               ),
             ),

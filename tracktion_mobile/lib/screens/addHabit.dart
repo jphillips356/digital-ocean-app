@@ -63,7 +63,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
         print('frequencyPer: $frequencyPer, type: ${frequencyPer.runtimeType}');
         print('goal: $goal, type: ${goal.runtimeType}');
 
-        final habit = {
+        Map<String, dynamic> habit = {
           'name': name,
           'measurementType': measurementType,
           'measurementUnit': measurementUnit,
@@ -71,10 +71,15 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
           'frequency': frequency,
           'frequencyPer': frequencyPer,
           'goal': goal,
+          'UserID': widget.userId,
         };
 
-        final success = await _authService.addHabit(habit, widget.userId);
-        print(success);
+        print('Sending habit data to API: $habit');
+        final success = await _authService.addHabit(habit);
+        print('API call success: $success');
+        print(widget.userId);
+        print(habit);
+
         if (success) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(

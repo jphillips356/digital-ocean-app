@@ -128,22 +128,16 @@ class AuthService {
   }
 
 // Add habit function
-  Future<bool> addHabit(Map<String, dynamic> habit, int userId) async {
-    final url = Uri.parse('$baseUrl/habits?userId=$userId');
-
-    // Debugging: Print the URL and the habit data being sent
-    print('Request URL: $url');
-    print('Habit data being sent: ${jsonEncode(habit)}');
+  Future<bool> addHabit(Map<String, dynamic> habit) async {
+    final url = Uri.parse('$baseUrl/habits');
 
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(habit),
     );
-
-    // Debugging: Print the response details
-    print('Response status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    print('POST URL: $url');
+    print('POST Body: ${jsonEncode(habit)}');
 
     return response.statusCode == 201;
   }
