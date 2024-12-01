@@ -57,13 +57,23 @@ async function sendEmail(to, subject, text) {
 }
 
 app.get('/api/user-details', async (req, res) => {
-  const { email } = req.query; // Expecting email as a query parameter
+  const { email, username } = req.query; // Accept both email and username as query parameters
 
   try {
     const usersCollection = db.collection('users');
 
-    // Find user by email
-    const user = await usersCollection.findOne({ Email: email });
+    // Build query dynamically based on provided parameter
+    const query = {};
+    if (email) {
+      query.Email = email;
+    } else if (username) {
+      query.Username = username;
+    } else {
+      return res.status(400).json({ success: false, error: 'Either email or username must be provided' });
+    }
+
+    // Find user by email or username
+    const user = await usersCollection.findOne(query);
 
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });

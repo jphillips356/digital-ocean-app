@@ -36,17 +36,23 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchUserDetails(String email) async {
+  Future<Map<String, dynamic>> fetchUserDetails(
+      {String? email, String? username}) async {
+    if (email == null && username == null) {
+      return {'error': 'Email or username must be provided'};
+    }
+
+    final queryParameters =
+        email != null ? {'email': email} : {'username': username};
+
     final url = Uri.parse(
         '$baseUrl/user-details'); // Replace $baseUrl with your API base URL
     final response = await http.get(
-      url.replace(
-          queryParameters: {'email': email}), // Add email as a query parameter
+      url.replace(queryParameters: queryParameters),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
-      // Successful response
       final responseBody = jsonDecode(response.body);
       if (responseBody['success'] == true) {
         return {
@@ -55,13 +61,14 @@ class AuthService {
           'userID': responseBody['data']['userID'],
         };
       } else {
+        print('test1');
         return {'error': responseBody['error']};
       }
     } else if (response.statusCode == 404) {
-      // User not found
+      print('test2');
       return {'error': 'User not found'};
     } else {
-      // Other errors
+      print('test3');
       return {'error': 'An error occurred'};
     }
   }

@@ -16,8 +16,14 @@ class _LoginPageState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<Map<String, dynamic>?> getUserDetails(String email) async {
-    Map<String, dynamic>? user = await _authService.fetchUserDetails(email);
+  Future<Map<String, dynamic>?> getUserDetails(
+      {String? email, String? username}) async {
+    if (email == null && username == null) {
+      return null; // Or return an appropriate error map
+    }
+
+    Map<String, dynamic>? user =
+        await _authService.fetchUserDetails(email: email, username: username);
 
     if (user != null && !user.containsKey('error')) {
       // Extract user properties (optional step to simplify output if needed)
@@ -31,23 +37,21 @@ class _LoginPageState extends State<Login> {
         'userID': userID,
       };
     } else {
-      // Return null or an appropriate error map for failure
+      // Return null for failure or an appropriate error map
       return null;
     }
   }
 
   Future<void> _handleLogin() async {
-    // Debug log
-
-    final email = _emailController.text;
-    final password = _passwordController.text;
+    final emailOrUsername = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
     // Call the login API
-    final result = await _authService.login(email, password);
+    final result = await _authService.login(emailOrUsername, password);
 
     // Handle different result cases based on the response
-    if (result.containsKey('error')) {
-      // If the response contains an error, show the error message
+    print('Login API result: $result'); //NEW
+    if (result.containsKey('error') && result['error'].isNotEmpty) {
       String errorMessage = result['error'];
 
       if (errorMessage == 'Incorrect password') {
@@ -59,18 +63,20 @@ class _LoginPageState extends State<Login> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
-
-      // If it's an error other than "email not verified," stop here
-      //if (errorMessage != 'Email not verified') {
-      //return;
-//}
+      print('User info fetched successfully:');
+      return; // Stop further processing if there's an error
     }
 
-    // Fetch user details
-    Map<String, dynamic>? userInfo = await getUserDetails(email);
+    // Fetch user details (attempt with email or username)
+    Map<String, dynamic>? userInfo = await getUserDetails(
+      email: emailOrUsername.contains('@') ? emailOrUsername : null,
+      username: !emailOrUsername.contains('@') ? emailOrUsername : null,
+    );
+
+    print('username: ${result['email']}');
+    print('email: ${result['username']}');
 
     if (userInfo == null) {
-      // Show an error if user details could not be fetched
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to fetch user details.')),
       );
