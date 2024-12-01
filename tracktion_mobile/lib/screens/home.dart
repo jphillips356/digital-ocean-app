@@ -71,19 +71,20 @@ class _HomePageState extends State<Home> {
     }
   }
 
-  Future<void> _completeHabit(int habitId) async {
+  Future<void> _completeHabit(String habitId) async {
     try {
       final response = await http.put(
         Uri.parse('http://192.168.1.135:5001/api/habits/$habitId/complete'),
         headers: {'Content-Type': 'application/json'},
       );
-
+      print('hello');
       if (response.statusCode == 200) {
+        print('hello2');
         // Update the local habit list to reflect the completed habit
         final updatedHabit = json.decode(response.body);
         setState(() {
           final index =
-              _habitList.indexWhere((habit) => habit['id'] == habitId);
+              _habitList.indexWhere((habit) => habit['_id'] == habitId);
           if (index != -1) {
             _habitList[index] = updatedHabit;
           }
@@ -127,14 +128,11 @@ class _HomePageState extends State<Home> {
                   itemCount: _habitList.length,
                   itemBuilder: (context, index) {
                     final habit = _habitList[index];
-
                     // Debugging: Print the habit data
-                    print('Habit data: $habit');
 
                     // Extract and validate habit details
-                    final id = habit['id']; // Ensure 'id' is properly populated
-                    print(habit['id']);
-                    print(id);
+                    final id =
+                        habit['_id']; // Ensure 'id' is properly populated
                     final streak = habit['streak'] ?? 0;
                     final goal = habit['goal'] ??
                         1; // Default goal to prevent division by zero

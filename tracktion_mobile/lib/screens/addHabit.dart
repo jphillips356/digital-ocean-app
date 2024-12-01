@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../authService.dart';
 
 class AddHabitScreen extends StatefulWidget {
-  const AddHabitScreen({Key? key}) : super(key: key);
+  final int userId;
+
+  const AddHabitScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   State<AddHabitScreen> createState() => _AddHabitScreenState();
@@ -11,9 +13,9 @@ class AddHabitScreen extends StatefulWidget {
 class _AddHabitScreenState extends State<AddHabitScreen> {
   final _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _measurementOptionsController = TextEditingController();
+  final TextEditingController _measurementOptionsController =
+      TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _frequencyController = TextEditingController();
   final TextEditingController _frequencyPerController = TextEditingController();
@@ -42,19 +44,37 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   Future<void> _addHabit() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final userId = await _authService.getUserId();
-        
+        final name = _nameController.text;
+        final measurementType = selectedMeasurementType;
+        final measurementUnit = _measurementOptionsController.text;
+        final amount = double.parse(_amountController.text);
+        final frequency = int.parse(_frequencyController.text);
+        final frequencyPer = _frequencyPerController.text;
+        final goal = int.parse(_goalController.text);
+
+        // Debugging: Print values and their data types
+        print('name: $name, type: ${name.runtimeType}');
+        print(
+            'measurementType: $measurementType, type: ${measurementType.runtimeType}');
+        print(
+            'measurementUnit: $measurementUnit, type: ${measurementUnit.runtimeType}');
+        print('amount: $amount, type: ${amount.runtimeType}');
+        print('frequency: $frequency, type: ${frequency.runtimeType}');
+        print('frequencyPer: $frequencyPer, type: ${frequencyPer.runtimeType}');
+        print('goal: $goal, type: ${goal.runtimeType}');
+
         final habit = {
-          'name': _nameController.text,
-          'measurementType': selectedMeasurementType,
-          'measurementUnit': _measurementOptionsController.text,
-          'amount': double.parse(_amountController.text),
-          'frequency': int.parse(_frequencyController.text),
-          'frequencyPer': _frequencyPerController.text,
-          'goal': int.parse(_goalController.text),
+          'name': name,
+          'measurementType': measurementType,
+          'measurementUnit': measurementUnit,
+          'amount': amount,
+          'frequency': frequency,
+          'frequencyPer': frequencyPer,
+          'goal': goal,
         };
 
-        final success = await _authService.addHabit(habit, userId);
+        final success = await _authService.addHabit(habit, widget.userId);
+        print(success);
         if (success) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -114,12 +134,15 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                           child: Text(type.capitalize()),
                         ))
                     .toList(),
-                decoration: const InputDecoration(labelText: 'Measurement Type'),
+                decoration:
+                    const InputDecoration(labelText: 'Measurement Type'),
                 validator: (value) => value == null ? 'Select a Type' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _measurementOptionsController.text.isEmpty ? null : _measurementOptionsController.text,
+                value: _measurementOptionsController.text.isEmpty
+                    ? null
+                    : _measurementOptionsController.text,
                 onChanged: (value) {
                   setState(() {
                     _measurementOptionsController.text = value!;
@@ -131,8 +154,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                           child: Text(option),
                         ))
                     .toList(),
-                decoration: const InputDecoration(labelText: 'Measurement Unit'),
-                validator: (value) => value == null || value.isEmpty ? 'Select Unit' : null,
+                decoration:
+                    const InputDecoration(labelText: 'Measurement Unit'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Select Unit' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -141,7 +166,9 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value!.isEmpty) return 'Enter Amount';
-                  if (double.tryParse(value) == null) return 'Enter a valid number';
+                  if (double.tryParse(value) == null) {
+                    return 'Enter a valid number';
+                  }
                   return null;
                 },
               ),
@@ -152,13 +179,17 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value!.isEmpty) return 'Enter Frequency';
-                  if (int.tryParse(value) == null) return 'Enter a valid number';
+                  if (int.tryParse(value) == null) {
+                    return 'Enter a valid number';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _frequencyPerController.text.isEmpty ? null : _frequencyPerController.text,
+                value: _frequencyPerController.text.isEmpty
+                    ? null
+                    : _frequencyPerController.text,
                 onChanged: (value) {
                   setState(() {
                     _frequencyPerController.text = value!;
@@ -171,7 +202,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                         ))
                     .toList(),
                 decoration: const InputDecoration(labelText: 'Per'),
-                validator: (value) => value == null || value.isEmpty ? 'Select Per' : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Select Per' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -180,7 +212,9 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value!.isEmpty) return 'Enter Goal';
-                  if (int.tryParse(value) == null) return 'Enter a valid number';
+                  if (int.tryParse(value) == null) {
+                    return 'Enter a valid number';
+                  }
                   return null;
                 },
               ),
