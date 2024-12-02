@@ -109,6 +109,7 @@ class _LoginPageState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: SvgPicture.asset('assets/images/Logo.svg', height: 40),
         automaticallyImplyLeading: false,
@@ -130,6 +131,7 @@ class _LoginPageState extends State<Login> {
             ),
           ),
           // Foreground content
+
           Padding(
             padding: const EdgeInsets.all(
                 30.0), // Added padding around the entire body
@@ -137,35 +139,38 @@ class _LoginPageState extends State<Login> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 20.0), // Space above the Welcome text
-                const Text(
-                  'Welcome, User',
-                  style: TextStyle(
-                    fontSize: 38.0,
-                    fontFamily: 'RubikMono',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+
+                const Align(
+                  child: Text(
+                    'Welcome!',
+                    style: TextStyle(
+                      fontSize: 42.0,
+                      fontFamily: 'RubikMono',
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
+
                 const Spacer(), // Add space to move content downward
                 const Align(
-                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'Are you ready to build',
+                    'Are you ready to',
                     style: TextStyle(
-                      fontSize: 32.0,
+                      fontSize: 40.0,
                       fontFamily: 'Roboto',
                       fontWeight: FontWeight.w400,
                       color: Colors.black,
                     ),
                   ),
                 ),
+
                 const Align(
-                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'some habits!',
+                    'build some habits!',
                     style: TextStyle(
-                      fontSize: 24.0,
-                      fontFamily: 'RubikMono',
+                      fontSize: 40.0,
+                      fontFamily: 'Roboto',
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
@@ -193,6 +198,8 @@ class _LoginPageState extends State<Login> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
                   ),
                 ),
@@ -217,6 +224,8 @@ class _LoginPageState extends State<Login> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
                   ),
                 ),
@@ -236,7 +245,7 @@ class _LoginPageState extends State<Login> {
                       child: const Text(
                         'Sign In',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 0, 0, 0),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Roboto',
@@ -261,7 +270,7 @@ class _LoginPageState extends State<Login> {
                       child: const Text(
                         'Register',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 0, 0, 0),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Roboto',

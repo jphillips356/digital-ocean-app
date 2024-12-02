@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:tracktion_mobile/screens/addHabit.dart';
+import 'package:tracktion_mobile/screens/editHabit.dart';
 
 class Home extends StatefulWidget {
   final int userId;
@@ -98,6 +99,77 @@ class _HomePageState extends State<Home> {
     }
   }
 
+  Future<void> _deleteHabit(String habitId) async {
+    final url = Uri.parse('http://192.168.1.135:5001/api/habits/$habitId');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          // Remove the habit locally after a successful deletion
+          _habitList.removeWhere((habit) => habit['_id'] == habitId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Habit deleted successfully.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed to delete habit: ${response.statusCode}')),
+        );
+      }
+    } catch (error) {
+      print('Error deleting habit: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('An error occurred while deleting the habit.')),
+      );
+    }
+  }
+
+  Future<void> _editHabit(String habitId, Map<String, dynamic> updates) async {
+    final url = Uri.parse('http://192.168.1.135:5001/api/habits/$habitId');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(updates),
+      );
+
+      if (response.statusCode == 200) {
+        // Update the habit in the local list
+        setState(() {
+          final index =
+              _habitList.indexWhere((habit) => habit['_id'] == habitId);
+          if (index != -1) {
+            _habitList[index] = json.decode(response.body);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Habit edited successfully.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to edit habit: ${response.statusCode}'),
+          ),
+        );
+      }
+    } catch (error) {
+      print('Error editing habit: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An error occurred while editing the habit.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,7 +216,7 @@ class _HomePageState extends State<Home> {
 
                     // Format the subtitle
                     final subtitle =
-                        '$amount $measurementUnit, $frequency per $frequencyPer';
+                        '$measurementUnit, $frequencyPer $frequency';
 
                     // Check for missing or null ID
                     if (id == null) {
@@ -186,7 +258,82 @@ class _HomePageState extends State<Home> {
                             ),
                           ),
                           if (_selectedHabitIndex == index)
-                            RaceTrack(streak: streak, goal: goal),
+                            Column(
+                              children: [
+                                RaceTrack(streak: streak, goal: goal),
+                                const SizedBox(
+                                    height:
+                                        8), // Spacing between RaceTrack and Buttons
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                            0xFF64FCD9), // Background color for Delete button
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 24, vertical: 12),
+                                      ),
+                                      onPressed: () {
+                                        if (id != null) {
+                                          _deleteHabit(
+                                              id); // Call the delete function
+                                        } else {
+                                          print('Error: Habit ID is null');
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                        width:
+                                            16), // Spacing between Delete and Edit buttons
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 24, vertical: 12),
+                                      ),
+                                      onPressed: () {
+                                        if (id != null) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditHabitScreen(
+                                                userId: widget.userId,
+                                                habit:
+                                                    habit, // Pass the selected habit to the edit screen
+                                              ),
+                                            ),
+                                          ).then((result) {
+                                            if (result == true) {
+                                              _fetchHabits(); // Refresh habits if changes were saved
+                                            }
+                                          });
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Edit',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Roboto',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     );

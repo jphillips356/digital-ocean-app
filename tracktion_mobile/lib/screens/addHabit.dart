@@ -46,30 +46,20 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       try {
         final name = _nameController.text;
         final measurementType = selectedMeasurementType;
-        final measurementUnit = _measurementOptionsController.text;
-        final amount = double.parse(_amountController.text);
-        final frequency = int.parse(_frequencyController.text);
-        final frequencyPer = _frequencyPerController.text;
+        final measurementUnit =
+            _amountController.text + ' ' + _measurementOptionsController.text;
+        final frequency = (_frequencyController.text +
+            ' per ' +
+            _frequencyPerController.text);
         final goal = int.parse(_goalController.text);
 
         // Debugging: Print values and their data types
-        print('name: $name, type: ${name.runtimeType}');
-        print(
-            'measurementType: $measurementType, type: ${measurementType.runtimeType}');
-        print(
-            'measurementUnit: $measurementUnit, type: ${measurementUnit.runtimeType}');
-        print('amount: $amount, type: ${amount.runtimeType}');
-        print('frequency: $frequency, type: ${frequency.runtimeType}');
-        print('frequencyPer: $frequencyPer, type: ${frequencyPer.runtimeType}');
-        print('goal: $goal, type: ${goal.runtimeType}');
 
         Map<String, dynamic> habit = {
           'name': name,
           'measurementType': measurementType,
           'measurementUnit': measurementUnit,
-          'amount': amount,
           'frequency': frequency,
-          'frequencyPer': frequencyPer,
           'goal': goal,
           'UserID': widget.userId,
         };

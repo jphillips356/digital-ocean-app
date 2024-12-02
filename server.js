@@ -370,6 +370,7 @@ app.post('/api/habits', async (req, res) => {
 
 // Update habit route
 app.put('/api/habits/:id', async (req, res) => {
+  console.log('Request Body:', req.body);
   try {
     const { id } = req.params;
     const { name, measurementType, measurementUnit, frequency, streak, goal } = req.body;
