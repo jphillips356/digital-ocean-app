@@ -29,7 +29,7 @@ class _HomePageState extends State<Home> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://192.168.1.135:5001/api/user-details?UserID=${widget.userId}'),
+            'https://habittracktion.xyz/api/user-details?UserID=${widget.userId}'),
       );
 
       if (response.statusCode == 200) {
@@ -49,7 +49,7 @@ class _HomePageState extends State<Home> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://192.168.1.135:5001/api/habits?UserID=${widget.userId}'),
+            'https://habittracktion.xyz/api/habits?UserID=${widget.userId}'),
       );
 
       if (response.statusCode == 200) {
@@ -76,7 +76,7 @@ class _HomePageState extends State<Home> {
   Future<void> _completeHabit(String habitId) async {
     try {
       final response = await http.put(
-        Uri.parse('http://192.168.1.135:5001/api/habits/$habitId/complete'),
+        Uri.parse('https://habittracktion.xyz/api/habits/$habitId/complete'),
         headers: {'Content-Type': 'application/json'},
       );
       print('hello');
@@ -100,7 +100,7 @@ class _HomePageState extends State<Home> {
   }
 
   Future<void> _deleteHabit(String habitId) async {
-    final url = Uri.parse('http://192.168.1.135:5001/api/habits/$habitId');
+    final url = Uri.parse('https://habittracktion.xyz/api/habits/$habitId');
 
     try {
       final response = await http.delete(
@@ -132,7 +132,7 @@ class _HomePageState extends State<Home> {
   }
 
   Future<void> _editHabit(String habitId, Map<String, dynamic> updates) async {
-    final url = Uri.parse('http://192.168.1.135:5001/api/habits/$habitId');
+    final url = Uri.parse('https://habittracktion.xyz/api/habits/$habitId');
 
     try {
       final response = await http.put(

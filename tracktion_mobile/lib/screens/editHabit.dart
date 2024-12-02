@@ -68,49 +68,94 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
         measurementOptions[selectedMeasurementType] ?? [];
   }
 
+  // Future<void> _saveChanges() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     final updates = {
+  //       'name': _nameController.text,
+  //       'amount': _amountController.text,
+  //       'frequency': _frequencyController.text,
+  //       'frequencyPer': _frequencyPerController.text,
+  //       'goal': int.tryParse(_goalController.text) ?? 0,
+  //       'measurementType': selectedMeasurementType,
+  //       'measurementUnit': _measurementUnitController.text,
+  //     };
+
+  //     final habitId = widget.habit['_id'];
+  //     final url = Uri.parse('https://habittracktion.xyz/api/habits/$habitId');
+
+  //     try {
+  //       final response = await http.put(
+  //         url,
+  //         headers: {'Content-Type': 'application/json'},
+  //         body: jsonEncode(updates),
+  //       );
+
+  //       if (response.statusCode == 200) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Habit updated successfully!')),
+  //         );
+  //         Navigator.pop(context, true);
+  //       } else {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //               content:
+  //                   Text('Failed to update habit: ${response.statusCode}')),
+  //         );
+  //       }
+  //     } catch (error) {
+  //       print('Error updating habit: $error');
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //             content: Text('An error occurred while updating the habit.')),
+  //       );
+  //     }
+  //   }
+  // }
+
   Future<void> _saveChanges() async {
-    if (_formKey.currentState!.validate()) {
-      final updates = {
-        'name': _nameController.text,
-        'amount': _amountController.text,
-        'frequency': _frequencyController.text,
-        'frequencyPer': _frequencyPerController.text,
-        'goal': int.tryParse(_goalController.text) ?? 0,
-        'measurementType': selectedMeasurementType,
-        'measurementUnit': _measurementUnitController.text,
-      };
+  if (_formKey.currentState!.validate()) {
+    final updates = {
+      'name': _nameController.text,
+      'amount': _amountController.text,
+      'frequency': _frequencyController.text,
+      'frequencyPer': _frequencyPerController.text,
+      'goal': int.tryParse(_goalController.text) ?? 0,
+      'measurementType': selectedMeasurementType,
+      'measurementUnit': _measurementUnitController.text,
+      'streak': widget.habit['streak'] ?? 0, // Include the current streak
+    };
 
-      final habitId = widget.habit['_id'];
-      final url = Uri.parse('http://192.168.1.135:5001/api/habits/$habitId');
+    final habitId = widget.habit['_id'];
+    final url = Uri.parse('https://habittracktion.xyz/api/habits/$habitId');
 
-      try {
-        final response = await http.put(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(updates),
-        );
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(updates),
+      );
 
-        if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Habit updated successfully!')),
-          );
-          Navigator.pop(context, true);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Failed to update habit: ${response.statusCode}')),
-          );
-        }
-      } catch (error) {
-        print('Error updating habit: $error');
+      if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('An error occurred while updating the habit.')),
+          const SnackBar(content: Text('Habit updated successfully!')),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed to update habit: ${response.statusCode}')),
         );
       }
+    } catch (error) {
+      print('Error updating habit: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('An error occurred while updating the habit.')),
+      );
     }
   }
+}
+
 
   void _updateMeasurementOptions(String? type) {
     setState(() {
