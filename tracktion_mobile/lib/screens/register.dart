@@ -56,7 +56,9 @@ class _RegisterPageState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: SvgPicture.asset('assets/images/Logo.svg', height: 40),
         automaticallyImplyLeading: false,
       ),

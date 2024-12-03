@@ -173,7 +173,9 @@ class _HomePageState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text('Welcome, $_username!'),
         automaticallyImplyLeading: false,
         actions: [
@@ -232,9 +234,20 @@ class _HomePageState extends State<Home> {
                       },
                       child: Column(
                         children: [
-                          Card(
+                          Container(
                             margin: const EdgeInsets.symmetric(
                                 vertical: 8, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: _selectedHabitIndex == index
+                                  ? const Color(
+                                      0xFF64FCD9) // Turquoise background for selected
+                                  : Colors
+                                      .white, // Default white for unselected
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: const Color.fromARGB(
+                                      255, 0, 0, 0)!), // Add light border
+                            ),
                             child: ListTile(
                               title: Text(
                                 habit['name'] ?? 'Unnamed Habit',
@@ -243,14 +256,18 @@ class _HomePageState extends State<Home> {
                               ),
                               subtitle: Text(subtitle),
                               trailing: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(
+                                      255,
+                                      231,
+                                      231,
+                                      231), // Set to your desired color
+                                  foregroundColor: const Color.fromARGB(
+                                      255, 0, 0, 0), // Set text color
+                                ),
                                 onPressed: () {
                                   if (id != null) {
-                                    print(
-                                        'Completing habit with ID: $id'); // Debug print
                                     _completeHabit(id);
-                                  } else {
-                                    print(
-                                        'Error: Habit ID is null for habit: $habit');
                                   }
                                 },
                                 child: const Text('Complete'),
@@ -339,20 +356,36 @@ class _HomePageState extends State<Home> {
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  AddHabitScreen(userId: widget.userId), // Pass userId here
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                const Color(0xFF64FCD9), // Match delete button color
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30.0), // Rounded corners
             ),
-          ).then((_) {
-            _fetchHabits();
-          });
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Add Habit',
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddHabitScreen(userId: widget.userId),
+              ),
+            ).then((_) {
+              _fetchHabits();
+            });
+          },
+          child: const Text(
+            'Add Habit',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -109,8 +109,10 @@ class _LoginPageState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: SvgPicture.asset('assets/images/Logo.svg', height: 40),
         automaticallyImplyLeading: false,
       ),

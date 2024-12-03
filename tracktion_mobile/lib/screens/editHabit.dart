@@ -113,49 +113,49 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
   // }
 
   Future<void> _saveChanges() async {
-  if (_formKey.currentState!.validate()) {
-    final updates = {
-      'name': _nameController.text,
-      'amount': _amountController.text,
-      'frequency': _frequencyController.text,
-      'frequencyPer': _frequencyPerController.text,
-      'goal': int.tryParse(_goalController.text) ?? 0,
-      'measurementType': selectedMeasurementType,
-      'measurementUnit': _measurementUnitController.text,
-      'streak': widget.habit['streak'] ?? 0, // Include the current streak
-    };
+    if (_formKey.currentState!.validate()) {
+      final updates = {
+        'name': _nameController.text,
+        'amount': _amountController.text,
+        'frequency': _frequencyController.text,
+        'frequencyPer': _frequencyPerController.text,
+        'goal': int.tryParse(_goalController.text) ?? 0,
+        'measurementType': selectedMeasurementType,
+        'measurementUnit': _measurementUnitController.text,
+        'streak': widget.habit['streak'] ?? 0, // Include the current streak
+      };
 
-    final habitId = widget.habit['_id'];
-    final url = Uri.parse('https://habittracktion.xyz/api/habits/$habitId');
+      final habitId = widget.habit['_id'];
+      final url = Uri.parse('https://habittracktion.xyz/api/habits/$habitId');
 
-    try {
-      final response = await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(updates),
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Habit updated successfully!')),
+      try {
+        final response = await http.put(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(updates),
         );
-        Navigator.pop(context, true);
-      } else {
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Habit updated successfully!')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text('Failed to update habit: ${response.statusCode}')),
+          );
+        }
+      } catch (error) {
+        print('Error updating habit: $error');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Failed to update habit: ${response.statusCode}')),
+          const SnackBar(
+              content: Text('An error occurred while updating the habit.')),
         );
       }
-    } catch (error) {
-      print('Error updating habit: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('An error occurred while updating the habit.')),
-      );
     }
   }
-}
-
 
   void _updateMeasurementOptions(String? type) {
     setState(() {
@@ -262,18 +262,22 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _saveChanges,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFE6E6),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor:
+                      const Color(0xFF64FCD9), // Match other button colors
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24.0),
+                    borderRadius:
+                        BorderRadius.circular(30.0), // Rounded corners
                   ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 ),
+                onPressed: _saveChanges,
                 child: const Text(
                   'Save Changes',
                   style: TextStyle(
-                    color: Colors.red,
+                    color: Colors.black,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

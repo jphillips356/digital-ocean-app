@@ -98,6 +98,7 @@ app.get('/api/user-details', async (req, res) => {
 
 // Registration route
 app.post('/api/register', async (req, res) => {
+  console.log('Request Body:', req.body);
   const { username, email, password, firstName, lastName } = req.body;
   try {
     const usersCollection = db.collection('users');
@@ -241,6 +242,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
 // Login route 
 app.post('/api/login', async (req, res) => {
+  console.log('Request Body:', req.body);
   const { login, password } = req.body;
 
   try {
