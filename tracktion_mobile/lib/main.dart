@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const Login(),
-        'registerMobile': (context) => const registerMobile(),
+        'register': (context) => const register(),
       },
       onGenerateRoute: (settings) {
         // Handle dynamic routing based on arguments
