@@ -73,10 +73,10 @@ class AuthService {
     }
   }
 
-  // Register function
-  Future<bool> register(String username, String email, String firstName,
+  // registerMobile function
+  Future<bool> registerMobile(String username, String email, String firstName,
       String lastName, String password) async {
-    final url = Uri.parse('$baseUrl/register');
+    final url = Uri.parse('$baseUrl/registerMobile');
 
     // Prepare the payload to send in the request body
     final payload = {
@@ -87,7 +87,7 @@ class AuthService {
       'Password': password,
     };
 
-    print('Attempting to register with:');
+    print('Attempting to registerMobile with:');
     print('URL: $url');
     print('Payload: ${jsonEncode(payload)}');
 
@@ -116,7 +116,7 @@ class AuthService {
         print('Username or email already taken.');
         return false; // Username or email already taken
       } else {
-        print('Failed to register: ${response.body}');
+        print('Failed to registerMobile: ${response.body}');
         return false; // Other error
       }
     } catch (e) {

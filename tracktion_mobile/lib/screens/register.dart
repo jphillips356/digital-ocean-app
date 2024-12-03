@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import '../authService.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class Register extends StatefulWidget {
-  const Register({super.key});
+class registerMobile extends StatefulWidget {
+  const registerMobile({super.key});
 
   @override
-  State<Register> createState() => _RegisterPageState();
+  State<registerMobile> createState() => _registerMobilePageState();
 }
 
-class _RegisterPageState extends State<Register> {
+class _registerMobilePageState extends State<registerMobile> {
   final AuthService _authService = AuthService();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -17,10 +17,10 @@ class _RegisterPageState extends State<Register> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _register() async {
+  void _registerMobile() async {
     try {
-      // Register the user
-      final result = await _authService.register(
+      // registerMobile the user
+      final result = await _authService.registerMobile(
         _usernameController.text,
         _emailController.text, // Pass email as well
         _firstNameController.text,
@@ -82,9 +82,9 @@ class _RegisterPageState extends State<Register> {
                 30.0), // Added padding around the entire body
             child: Column(
               children: [
-                const SizedBox(height: 30.0), // Space above the Register text
+                const SizedBox(height: 30.0), // Space above the registerMobile text
                 const Text(
-                  'Register',
+                  'registerMobile',
                   style: TextStyle(
                       fontSize: 38.0,
                       fontWeight: FontWeight.bold,
@@ -205,7 +205,7 @@ class _RegisterPageState extends State<Register> {
                     ),
                   ),
                 ),
-                // Register Button
+                // registerMobile Button
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 15.0),
                   child: Material(
@@ -214,11 +214,11 @@ class _RegisterPageState extends State<Register> {
                     borderRadius: BorderRadius.circular(30.0),
                     child: MaterialButton(
                       onPressed:
-                          _register, // Trigger the register function here
+                          _registerMobile, // Trigger the registerMobile function here
                       minWidth: 200.0,
                       height: 42.0,
                       child: const Text(
-                        'Register',
+                        'registerMobile',
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 20,
