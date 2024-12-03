@@ -91,28 +91,28 @@ class AuthService {
     print('URL: $url');
     print('Payload: ${jsonEncode(payload)}');
 
+    print("Before API Try");
     try {
       // Send the POST request
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
-      );
+        );
 
+
+       final responseData = jsonDecode(response.body);
       // Check the response status
       if (response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
         // Check if the user needs to verify their email
         if (responseData['needsVerification'] == true) {
           print('Registration successful. A verification email has been sent.');
           return true; // Registration successful
         }
       } else if (response.statusCode == 409) {
-        final responseData = jsonDecode(response.body);
         print('User exists but is not verified.');
         return false; // User exists but not verified
       } else if (response.statusCode == 400) {
-        final responseData = jsonDecode(response.body);
         print('Username or email already taken.');
         return false; // Username or email already taken
       } else {
@@ -123,6 +123,8 @@ class AuthService {
       print('Error during registration: $e');
       return false; // Error during request
     }
+
+    print("After Try");
 
     return false; // Default return false if no conditions are met
   }
