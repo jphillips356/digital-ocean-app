@@ -573,42 +573,119 @@ app.get('/api/user-details', async (req, res) => {
 });
 
 // Registration route
+// app.post('/api/register', async (req, res) => {
+//   const { username, email, password, firstName, lastName } = req.body;
+//   try {
+//     const usersCollection = db.collection('users');
+//     const existingUser = await usersCollection.findOne({ $or: [{ Username: username }, { Email: email }] });
+//     if (existingUser) {
+//       if (!existingUser.IsVerified) {
+//         return res.status(409).json({ success: false, error: 'User exists but is not verified', needsVerification: true });
+//       }
+//       return res.status(400).json({ success: false, error: 'Username or email already taken' });
+//     }
+//     const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
+//     const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
+//     const verificationToken = crypto.randomBytes(20).toString('hex');
+//     const newUser = {
+//       Username: username,
+//       Email: email,
+//       Password: password,
+//       FirstName: firstName,
+//       LastName: lastName,
+//       UserID: newUserID,
+//       VerificationToken: verificationToken,
+//       IsVerified: false
+//     };
+//     await usersCollection.insertOne(newUser);
+    
+//     const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+//     await sendEmail(
+//       email,
+//       'Verify Your Email',
+//       `Please click on the following link to verify your email: ${verificationLink}`
+//     );
+    
+//     res.status(201).json({ success: true, error: '', needsVerification: true });
+//   } catch (e) {
+//     console.error(e);
+//     res.status(500).json({ success: false, error: 'An error occurred during registration' });
+//   }
+// });
+
 app.post('/api/register', async (req, res) => {
-  const { username, email, password, firstName, lastName } = req.body;
+  const { Username, Email, FirstName, LastName, Password } = req.body;
+
+  // Log each variable for debugging
+  console.log('Received registration details:');
+  console.log(`Username: ${Username}`);
+  console.log(`Email: ${Email}`);
+  console.log(`Password: ${Password}`); // Only for debugging; don't log passwords in production
+  console.log(`First Name: ${FirstName}`);
+  console.log(`Last Name: ${LastName}`);
+
   try {
     const usersCollection = db.collection('users');
-    const existingUser = await usersCollection.findOne({ $or: [{ Username: username }, { Email: email }] });
+
+    // Normalize username and email for consistent comparison
+    const normalizedUsername = Username.toLowerCase();
+    const normalizedEmail = Email.toLowerCase();
+
+    console.log(`Checking for existing users with Username: ${normalizedUsername} or Email: ${normalizedEmail}`);
+
+    const existingUser = await usersCollection.findOne({
+      $or: [{ Username: normalizedUsername }, { Email: normalizedEmail }]
+    });
+
     if (existingUser) {
+      console.log('Existing user found:', existingUser);
+
       if (!existingUser.IsVerified) {
-        return res.status(409).json({ success: false, error: 'User exists but is not verified', needsVerification: true });
+        console.log('User exists but is not verified.');
+        return res.status(409).json({
+          success: false,
+          error: 'User exists but is not verified',
+          needsVerification: true,
+        });
       }
+
+      console.log('Username or email is already taken.');
       return res.status(400).json({ success: false, error: 'Username or email already taken' });
     }
+
+    console.log('No existing user found. Proceeding to register...');
+
     const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
     const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
+
     const verificationToken = crypto.randomBytes(20).toString('hex');
     const newUser = {
-      Username: username,
-      Email: email,
-      Password: password,
-      FirstName: firstName,
-      LastName: lastName,
+      Username: normalizedUsername,
+      Email: normalizedEmail,
+      Password: Password,
+      FirstName,
+      LastName,
       UserID: newUserID,
       VerificationToken: verificationToken,
-      IsVerified: false
+      IsVerified: false,
     };
+
+    console.log('Registering new user:', newUser);
+
     await usersCollection.insertOne(newUser);
-    
+
     const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+    console.log('Sending verification email to:', normalizedEmail);
     await sendEmail(
-      email,
+      normalizedEmail,
       'Verify Your Email',
       `Please click on the following link to verify your email: ${verificationLink}`
     );
-    
+
+    // Move the response here to ensure it's sent after all processing is complete
     res.status(201).json({ success: true, error: '', needsVerification: true });
   } catch (e) {
-    console.error(e);
+    console.error('Error during registration:', e);
     res.status(500).json({ success: false, error: 'An error occurred during registration' });
   }
 });
