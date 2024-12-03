@@ -57,19 +57,103 @@ async function sendEmail(to, subject, text) {
 }
 
 // Registration route
+// app.post('/api/register', async (req, res) => {
+//   const { username, email, password, firstName, lastName } = req.body;
+//   try {
+//     const usersCollection = db.collection('users');
+//     const existingUser = await usersCollection.findOne({ $or: [{ Username: username }, { Email: email }] });
+//     if (existingUser) {
+//       if (!existingUser.IsVerified) {
+//         return res.status(409).json({ success: false, error: 'User exists but is not verified', needsVerification: true });
+//       }
+//       return res.status(400).json({ success: false, error: 'Username or email already taken' });
+//     }
+//     const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
+//     const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
+//     const verificationToken = crypto.randomBytes(20).toString('hex');
+//     const newUser = {
+//       Username: username,
+//       Email: email,
+//       Password: password,
+//       FirstName: firstName,
+//       LastName: lastName,
+//       UserID: newUserID,
+//       VerificationToken: verificationToken,
+//       IsVerified: false
+//     };
+//     await usersCollection.insertOne(newUser);
+    
+//     const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+//     await sendEmail(
+//       email,
+//       'Verify Your Email',
+//       `Please click on the following link to verify your email: ${verificationLink}`
+//     );
+    
+//     res.status(201).json({ success: true, error: '', needsVerification: true });
+//   } catch (e) {
+//     console.error(e);
+//     res.status(500).json({ success: false, error: 'An error occurred during registration' });
+//   }
+// });
+
+// app.get('/api/verify-email', async (req, res) => {
+//   const { token } = req.query;
+
+//   if (!token) {
+//     return res.status(400).json({ success: false, error: 'Invalid or missing token' });
+//   }
+
+//   try {
+//     const usersCollection = db.collection('users');
+//     const user = await usersCollection.findOne({ VerificationToken: token });
+
+//     if (!user) {
+//       return res.status(404).json({ success: false, error: 'Invalid token or user not found' });
+//     }
+
+//     // Update the user's IsVerified status
+//     await usersCollection.updateOne(
+//       { VerificationToken: token },
+//       { $set: { IsVerified: true }, $unset: { VerificationToken: '' } }
+//     );
+
+//     // Instead of serving a static HTML file, send a JSON response
+//     res.status(200).json({ success: true, message: 'Email verified successfully' });
+//   } catch (error) {
+//     console.error('Verification error:', error);
+//     res.status(500).json({ success: false, error: 'An error occurred during verification' });
+//   }
+// });
+
 app.post('/api/register', async (req, res) => {
-  const { username, email, password, firstName, lastName } = req.body;
+  let { username, email, password, firstName, lastName } = req.body;
+
   try {
+    // Sanitize inputs
+    username = username.trim().toLowerCase();
+    email = email.trim().toLowerCase();
+
     const usersCollection = db.collection('users');
-    const existingUser = await usersCollection.findOne({ $or: [{ Username: username }, { Email: email }] });
+
+    // Check for existing user
+    const existingUser = await usersCollection.findOne({
+      $or: [{ Username: username }, { Email: email }]
+    });
+
     if (existingUser) {
       if (!existingUser.IsVerified) {
+        console.log('User exists but is not verified:', existingUser);
         return res.status(409).json({ success: false, error: 'User exists but is not verified', needsVerification: true });
       }
       return res.status(400).json({ success: false, error: 'Username or email already taken' });
     }
+
+    // Generate unique UserID
     const lastUser = await usersCollection.find().sort({ UserID: -1 }).limit(1).toArray();
     const newUserID = lastUser.length > 0 ? lastUser[0].UserID + 1 : 1;
+
+    // Generate verification token
     const verificationToken = crypto.randomBytes(20).toString('hex');
     const newUser = {
       Username: username,
@@ -81,51 +165,25 @@ app.post('/api/register', async (req, res) => {
       VerificationToken: verificationToken,
       IsVerified: false
     };
+
+    // Insert user into the database
     await usersCollection.insertOne(newUser);
-    
+
+    // Send verification email
     const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
     await sendEmail(
       email,
       'Verify Your Email',
       `Please click on the following link to verify your email: ${verificationLink}`
     );
-    
+
+    console.log('New user registered successfully:', newUser);
     res.status(201).json({ success: true, error: '', needsVerification: true });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ success: false, error: 'An error occurred during registration' });
   }
 });
-
-app.get('/api/verify-email', async (req, res) => {
-  const { token } = req.query;
-
-  if (!token) {
-    return res.status(400).json({ success: false, error: 'Invalid or missing token' });
-  }
-
-  try {
-    const usersCollection = db.collection('users');
-    const user = await usersCollection.findOne({ VerificationToken: token });
-
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'Invalid token or user not found' });
-    }
-
-    // Update the user's IsVerified status
-    await usersCollection.updateOne(
-      { VerificationToken: token },
-      { $set: { IsVerified: true }, $unset: { VerificationToken: '' } }
-    );
-
-    // Instead of serving a static HTML file, send a JSON response
-    res.status(200).json({ success: true, message: 'Email verified successfully' });
-  } catch (error) {
-    console.error('Verification error:', error);
-    res.status(500).json({ success: false, error: 'An error occurred during verification' });
-  }
-});
-
 
 
 // Resend verification email route
