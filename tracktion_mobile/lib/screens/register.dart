@@ -64,7 +64,8 @@ class _registerPageState extends State<register> {
         children: [
           // Background image with specific position
           Positioned(
-            top: 70, // Adjust the position as needed
+            bottom: 0,
+            // Adjust the position as needed
             left: 0, // Adjust the position as needed
             right: 0,
             child: Container(
@@ -206,23 +207,31 @@ class _registerPageState extends State<register> {
                   ),
                 ),
                 // register Button
+                // Register Button
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  child: Material(
-                    elevation: 5.0,
-                    color: const Color.fromARGB(255, 100, 252, 217),
-                    borderRadius: BorderRadius.circular(30.0),
-                    child: MaterialButton(
-                      onPressed:
-                          _register, // Trigger the register function here
-                      minWidth: 200.0,
-                      height: 42.0,
-                      child: const Text(
-                        'register',
-                        style: TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 20,
-                          color: Colors.white,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.black, width: 2.0), // Black border
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    child: Material(
+                      elevation: 5.0,
+                      color: const Color.fromARGB(255, 100, 252, 217),
+                      borderRadius: BorderRadius.circular(30.0),
+                      child: MaterialButton(
+                        onPressed:
+                            _register, // Trigger the register function here
+                        minWidth: 200.0,
+                        height: 42.0,
+                        child: const Text(
+                          'Register',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 20,
+                            color: Color.fromARGB(255, 0, 0, 0),
+                          ),
                         ),
                       ),
                     ),
