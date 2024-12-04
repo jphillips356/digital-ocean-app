@@ -466,19 +466,27 @@ class _registerPageState extends State<register> {
                   padding: const EdgeInsets.symmetric(vertical: 15.0),
                   child: Material(
                     elevation: 5.0,
-                    color: const Color.fromARGB(255, 100, 252, 217),
                     borderRadius: BorderRadius.circular(30.0),
-                    child: MaterialButton(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(200.0, 42.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                        backgroundColor:
+                            const Color.fromARGB(255, 100, 252, 217),
+                        side: const BorderSide(
+                            color: Colors.black, width: 2.0), // Black outline
+                      ),
                       onPressed:
                           _register, // Trigger the register function here
-                      minWidth: 200.0,
-                      height: 42.0,
                       child: const Text(
                         'register',
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 20,
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 0, 0, 0),
                         ),
                       ),
                     ),
