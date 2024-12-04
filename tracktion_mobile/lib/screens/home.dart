@@ -56,6 +56,7 @@ class _HomePageState extends State<Home> {
         final List<dynamic> habits = json.decode(response.body);
         setState(() {
           _habitList = habits;
+          print('_habitList contents: $_habitList'); // Debug print
           _isLoading = false;
         });
       } else {
@@ -78,8 +79,10 @@ class _HomePageState extends State<Home> {
         Uri.parse('https://habittracktion.xyz/api/habits/$habitId/complete'),
         headers: {'Content-Type': 'application/json'},
       );
-
+      print('hello');
       if (response.statusCode == 200) {
+        print('hello2');
+        // Update the local habit list to reflect the completed habit
         final updatedHabit = json.decode(response.body);
         setState(() {
           final index =
@@ -107,6 +110,7 @@ class _HomePageState extends State<Home> {
 
       if (response.statusCode == 200) {
         setState(() {
+          // Remove the habit locally after a successful deletion
           _habitList.removeWhere((habit) => habit['_id'] == habitId);
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -138,6 +142,7 @@ class _HomePageState extends State<Home> {
       );
 
       if (response.statusCode == 200) {
+        // Update the habit in the local list
         setState(() {
           final index =
               _habitList.indexWhere((habit) => habit['_id'] == habitId);
@@ -168,37 +173,16 @@ class _HomePageState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Habit List',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'RubikMono',
-            color: Colors.black,
-          ),
-        ),
-        backgroundColor: Colors.white,
+        title: Text('Welcome, $_username!'),
         automaticallyImplyLeading: false,
         actions: [
-          TextButton.icon(
+          IconButton(
             onPressed: () {
               Navigator.pushReplacementNamed(context, '/');
             },
-            icon: const Icon(Icons.logout, color: Colors.black),
-            label: const Text(
-              'Logout',
-              style: TextStyle(
-                color: Colors.black, // Adjust text color
-                fontSize: 16, // Adjust font size
-                fontWeight: FontWeight.bold, // Optional: Adjust weight
-                fontFamily: 'Roboto', // Specify custom font
-              ),
-            ),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
           ),
         ],
       ),
@@ -217,14 +201,27 @@ class _HomePageState extends State<Home> {
                   itemCount: _habitList.length,
                   itemBuilder: (context, index) {
                     final habit = _habitList[index];
-                    final id = habit['_id'];
+                    // Debugging: Print the habit data
+
+                    // Extract and validate habit details
+                    final id =
+                        habit['_id']; // Ensure 'id' is properly populated
                     final streak = habit['streak'] ?? 0;
-                    final goal = habit['goal'] ?? 1;
+                    final goal = habit['goal'] ??
+                        1; // Default goal to prevent division by zero
+                    final amount = habit['amount'] ?? '';
                     final measurementUnit = habit['measurementUnit'] ?? '';
                     final frequency = habit['frequency'] ?? '';
                     final frequencyPer = habit['frequencyPer'] ?? '';
+
+                    // Format the subtitle
                     final subtitle =
                         '$measurementUnit, $frequencyPer $frequency';
+
+                    // Check for missing or null ID
+                    if (id == null) {
+                      print('Error: Missing habit ID for habit: $habit');
+                    }
 
                     return GestureDetector(
                       onTap: () {
@@ -238,39 +235,25 @@ class _HomePageState extends State<Home> {
                           Card(
                             margin: const EdgeInsets.symmetric(
                                 vertical: 8, horizontal: 16),
-                            color: _selectedHabitIndex == index
-                                ? const Color(0xFF64FCD9)
-                                : Colors.white,
-                            elevation: 2.0,
                             child: ListTile(
                               title: Text(
                                 habit['name'] ?? 'Unnamed Habit',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               subtitle: Text(subtitle),
                               trailing: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _selectedHabitIndex == index
-                                      ? const Color(0xFF9E9E9E)
-                                      : const Color(0xFF9E9E9E),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10),
-                                ),
                                 onPressed: () {
                                   if (id != null) {
+                                    print(
+                                        'Completing habit with ID: $id'); // Debug print
                                     _completeHabit(id);
+                                  } else {
+                                    print(
+                                        'Error: Habit ID is null for habit: $habit');
                                   }
                                 },
-                                child: const Text(
-                                  'Complete',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                child: const Text('Complete'),
                               ),
                             ),
                           ),
@@ -278,113 +261,25 @@ class _HomePageState extends State<Home> {
                             Column(
                               children: [
                                 RaceTrack(streak: streak, goal: goal),
-                                const SizedBox(height: 8),
+                                const SizedBox(
+                                    height:
+                                        8), // Spacing between RaceTrack and Buttons
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                            0xFF64FCD9), // Background color for Delete button
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 24, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(30),
-                                        ),
-                                        side: const BorderSide(
-                                            color: Colors.black,
-                                            width: 2.0), // Black border
-                                        backgroundColor: const Color(
-                                            0xFF64FCD9), // Button background color
                                       ),
                                       onPressed: () {
                                         if (id != null) {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                  'Confirm Delete',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                content: const Text(
-                                                    'Are you sure you want to delete this habit?'),
-                                                actions: <Widget>[
-                                                  OutlinedButton(
-                                                    style: OutlinedButton
-                                                        .styleFrom(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 16,
-                                                          vertical: 8),
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(30),
-                                                      ),
-                                                      side: const BorderSide(
-                                                          color: Colors.black,
-                                                          width: 2.0),
-                                                      backgroundColor:
-                                                          const Color(
-                                                              0xFF64FCD9),
-                                                    ),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(); // Close the dialog
-                                                    },
-                                                    child: const Text(
-                                                      'No',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  OutlinedButton(
-                                                    style: OutlinedButton
-                                                        .styleFrom(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 16,
-                                                          vertical: 8),
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(30),
-                                                      ),
-                                                      side: const BorderSide(
-                                                          color: Colors.black,
-                                                          width: 2.0),
-                                                      backgroundColor:
-                                                          const Color(
-                                                              0xFF64FCD9),
-                                                    ),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(); // Close the dialog
-                                                      _deleteHabit(
-                                                          id); // Proceed with deletion
-                                                    },
-                                                    child: const Text(
-                                                      'Yes',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
+                                          _deleteHabit(
+                                              id); // Call the delete function
+                                        } else {
+                                          print('Error: Habit ID is null');
                                         }
                                       },
                                       child: const Text(
@@ -393,23 +288,18 @@ class _HomePageState extends State<Home> {
                                           color: Colors.black,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
+                                          fontFamily: 'Roboto',
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
-                                    OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
+                                    const SizedBox(
+                                        width:
+                                            16), // Spacing between Delete and Edit buttons
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 24, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(30),
-                                        ),
-                                        side: const BorderSide(
-                                            color: Colors.black,
-                                            width: 2.0), // Black border
-                                        backgroundColor: const Color(
-                                            0xFF64FCD9), // Button background color
                                       ),
                                       onPressed: () {
                                         if (id != null) {
@@ -419,12 +309,13 @@ class _HomePageState extends State<Home> {
                                               builder: (context) =>
                                                   EditHabitScreen(
                                                 userId: widget.userId,
-                                                habit: habit,
+                                                habit:
+                                                    habit, // Pass the selected habit to the edit screen
                                               ),
                                             ),
                                           ).then((result) {
                                             if (result == true) {
-                                              _fetchHabits();
+                                              _fetchHabits(); // Refresh habits if changes were saved
                                             }
                                           });
                                         }
@@ -432,9 +323,10 @@ class _HomePageState extends State<Home> {
                                       child: const Text(
                                         'Edit',
                                         style: TextStyle(
-                                          color: Colors.black,
+                                          color: Colors.white,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
+                                          fontFamily: 'Roboto',
                                         ),
                                       ),
                                     ),
@@ -447,35 +339,20 @@ class _HomePageState extends State<Home> {
                     );
                   },
                 ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AddHabitScreen(userId: widget.userId), // Pass userId here
             ),
-            side: const BorderSide(
-                color: Colors.black, width: 2.0), // Black border
-            backgroundColor: const Color(0xFF64FCD9), // Button background color
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddHabitScreen(userId: widget.userId),
-              ),
-            ).then((_) => _fetchHabits());
-          },
-          child: const Text(
-            'Add Habit',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
+          ).then((_) {
+            _fetchHabits();
+          });
+        },
+        child: const Icon(Icons.add),
+        tooltip: 'Add Habit',
       ),
     );
   }
@@ -489,7 +366,7 @@ class RaceTrack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double progress = (streak / goal).clamp(0.0, 1.0);
+    final double progress = (streak / goal).clamp(0.0, 1.0) * 100;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -500,9 +377,10 @@ class RaceTrack extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          // Progress Bar
           Positioned.fill(
             child: FractionallySizedBox(
-              widthFactor: progress,
+              widthFactor: (streak / goal).clamp(0.0, 1.0),
               alignment: Alignment.centerLeft,
               child: Container(
                 decoration: BoxDecoration(
@@ -512,8 +390,9 @@ class RaceTrack extends StatelessWidget {
               ),
             ),
           ),
+          // Car Icon
           Positioned(
-            left: progress * 100,
+            left: progress,
             top: 0,
             child: Transform.translate(
               offset: const Offset(-8, 6),
@@ -522,6 +401,20 @@ class RaceTrack extends StatelessWidget {
                 size: 25,
                 color: Colors.black,
               ),
+            ),
+          ),
+          // Text Labels
+          Positioned.fill(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 8),
+                Text(
+                  'Goal: $goal days',
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
         ],
