@@ -3,8 +3,14 @@ import 'package:tracktion_mobile/screens/addHabit.dart';
 import 'screens/login.dart';
 import 'screens/register.dart';
 import 'screens/home.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'screens/notifi_service.dart';
+
+
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
   runApp(const MyApp());
 }
 
