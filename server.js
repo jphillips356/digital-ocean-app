@@ -571,69 +571,64 @@ app.delete('/api/habits/:id', async (req, res) => {
 //   }
 // });
 
-app.post('/api/habits/:id/complete', async (req, res) => {
-  const { id } = req.params;  // Get habit ID from the URL parameter
-  const userId = req.body.userId;  // Assuming userId is sent in the request body
-
+app.put('/api/habits/:id/complete', async (req, res) => {
   try {
-    const habitsCollection = db.collection('habits');
-    const usersCollection = db.collection('users');
-
-    // Find the habit by its ID
-    const habit = await habitsCollection.findOne({ _id: ObjectId(id) });
+    const { id } = req.params;
+    const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
 
     if (!habit) {
-      return res.status(404).json({ success: false, error: 'Habit not found' });
+      return res.status(404).json({ error: 'Habit not found' });
     }
 
-    // Find the user to get the current habit completion count for that user
-    const user = await usersCollection.findOne({ UserID: userId });
+    const currentDate = new Date();
+    const completionFrequency = habit.frequency; // Assuming `frequency` is the number of times per day the habit should be completed
 
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
+    // Check if today's completions are less than the frequency
+    const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted) : null;
 
-    // Assuming the habit completion data is stored within the user's document
-    const habitCompletion = user.habitCompletion || {}; // habitCompletion is an object with habit ids as keys
+    // If last completed date is the same as today's date, increment completionsToday
+    if (lastCompletedDate &&
+        lastCompletedDate.getFullYear() === currentDate.getFullYear() &&
+        lastCompletedDate.getMonth() === currentDate.getMonth() &&
+        lastCompletedDate.getDate() === currentDate.getDate()) {
 
-    // Check if the habit has been completed today, considering the frequency
-    const today = new Date().toISOString().split('T')[0];  // Get today's date in YYYY-MM-DD format
-    const completedToday = habitCompletion[habit._id] && habitCompletion[habit._id].date === today;
-    
-    if (completedToday) {
-      // If habit has been completed today, check if the frequency allows another completion
-      const completionsToday = habitCompletion[habit._id] ? habitCompletion[habit._id].count : 0;
-
-      if (completionsToday >= habit.frequency) {
-        return res.status(400).json({
-          success: false,
-          error: `You have already completed this habit ${habit.frequency} times today.`,
-        });
-      } else {
-        // Increment the completion count for today
-        habitCompletion[habit._id].count += 1;
+      if (habit.completionsToday >= completionFrequency) {
+        return res.status(400).json({ error: 'Habit completion limit for today reached' });
       }
+
+      // Increment completionsToday
+      const result = await db.collection('habits').findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { 
+          $inc: { completionsToday: 1 }, // Increment completions today
+          $set: { lastCompleted: currentDate },
+          $setOnInsert: { streak: habit.streak } // Keep streak intact if the habit is completed within the same day
+        },
+        { returnDocument: 'after' }
+      );
+
+      res.json(result.value);
     } else {
-      // If habit has not been completed today, initialize the count
-      habitCompletion[habit._id] = { date: today, count: 1 };
+      // If it's a new day, reset completionsToday and start fresh
+      const result = await db.collection('habits').findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { 
+          $set: { 
+            lastCompleted: currentDate,
+            completionsToday: 1, // Start the count at 1 for the new day
+            streak: habit.streak + 1 // Increment streak
+          }
+        },
+        { returnDocument: 'after' }
+      );
+
+      res.json(result.value);
     }
-
-    // Update the user's habit completion data
-    await usersCollection.updateOne(
-      { UserID: userId },
-      { $set: { habitCompletion } }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Habit completion recorded successfully.',
-    });
   } catch (error) {
     console.error('Error completing habit:', error);
-    res.status(500).json({ success: false, error: 'An error occurred while completing the habit' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 
 app.use(express.static(path.join(__dirname, 'frontend/dist')));
