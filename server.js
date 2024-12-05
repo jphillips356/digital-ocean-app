@@ -524,50 +524,113 @@ app.delete('/api/habits/:id', async (req, res) => {
 //   }
 // });
 
-app.put('/api/habits/:id/complete', async (req, res) => {
+// app.put('/api/habits/:id/complete', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
+
+//     if (!habit) {
+//       return res.status(404).json({ error: 'Habit not found' });
+//     }
+
+//     const currentDate = new Date();
+//     const currentDateString = currentDate.toISOString().split('T')[0];
+//     const lastCompletedDates = habit.lastCompletedDates || {}; // Object to store completion dates and counts
+
+//     if (!lastCompletedDates[currentDateString]) {
+//       lastCompletedDates[currentDateString] = 0; // Initialize if not completed today
+//     }
+
+//     const frequency = habit.frequency || 1; // Default frequency to 1 if not set
+
+//     if (lastCompletedDates[currentDateString] >= frequency) {
+//       return res.status(400).json({ error: 'Habit already completed the maximum number of times today' });
+//     }
+
+//     lastCompletedDates[currentDateString] += 1;
+
+//     const result = await db.collection('habits').findOneAndUpdate(
+//       { _id: new ObjectId(id) },
+//       { 
+//         $set: { 
+//           lastCompletedDates: lastCompletedDates,
+//           streak: habit.streak + 1
+//         }
+//       },
+//       { returnDocument: 'after' }
+//     );
+
+//     if (result.value) {
+//       res.json(result.value);
+//     } else {
+//       res.status(404).json({ error: 'Habit not found' });
+//     }
+//   } catch (error) {
+//     console.error('Error completing habit:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+app.post('/api/habits/:id/complete', async (req, res) => {
+  const { id } = req.params;  // Get habit ID from the URL parameter
+  const userId = req.body.userId;  // Assuming userId is sent in the request body
+
   try {
-    const { id } = req.params;
-    const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
+    const habitsCollection = db.collection('habits');
+    const usersCollection = db.collection('users');
+
+    // Find the habit by its ID
+    const habit = await habitsCollection.findOne({ _id: ObjectId(id) });
 
     if (!habit) {
-      return res.status(404).json({ error: 'Habit not found' });
+      return res.status(404).json({ success: false, error: 'Habit not found' });
     }
 
-    const currentDate = new Date();
-    const currentDateString = currentDate.toISOString().split('T')[0];
-    const lastCompletedDates = habit.lastCompletedDates || {}; // Object to store completion dates and counts
+    // Find the user to get the current habit completion count for that user
+    const user = await usersCollection.findOne({ UserID: userId });
 
-    if (!lastCompletedDates[currentDateString]) {
-      lastCompletedDates[currentDateString] = 0; // Initialize if not completed today
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    const frequency = habit.frequency || 1; // Default frequency to 1 if not set
+    // Assuming the habit completion data is stored within the user's document
+    const habitCompletion = user.habitCompletion || {}; // habitCompletion is an object with habit ids as keys
 
-    if (lastCompletedDates[currentDateString] >= frequency) {
-      return res.status(400).json({ error: 'Habit already completed the maximum number of times today' });
+    // Check if the habit has been completed today, considering the frequency
+    const today = new Date().toISOString().split('T')[0];  // Get today's date in YYYY-MM-DD format
+    const completedToday = habitCompletion[habit._id] && habitCompletion[habit._id].date === today;
+    
+    if (completedToday) {
+      // If habit has been completed today, check if the frequency allows another completion
+      const completionsToday = habitCompletion[habit._id] ? habitCompletion[habit._id].count : 0;
+
+      if (completionsToday >= habit.frequency) {
+        return res.status(400).json({
+          success: false,
+          error: `You have already completed this habit ${habit.frequency} times today.`,
+        });
+      } else {
+        // Increment the completion count for today
+        habitCompletion[habit._id].count += 1;
+      }
+    } else {
+      // If habit has not been completed today, initialize the count
+      habitCompletion[habit._id] = { date: today, count: 1 };
     }
 
-    lastCompletedDates[currentDateString] += 1;
-
-    const result = await db.collection('habits').findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { 
-        $set: { 
-          lastCompletedDates: lastCompletedDates,
-          streak: habit.streak + 1
-        }
-      },
-      { returnDocument: 'after' }
+    // Update the user's habit completion data
+    await usersCollection.updateOne(
+      { UserID: userId },
+      { $set: { habitCompletion } }
     );
 
-    if (result.value) {
-      res.json(result.value);
-    } else {
-      res.status(404).json({ error: 'Habit not found' });
-    }
+    res.status(200).json({
+      success: true,
+      message: 'Habit completion recorded successfully.',
+    });
   } catch (error) {
     console.error('Error completing habit:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'An error occurred while completing the habit' });
   }
 });
 
