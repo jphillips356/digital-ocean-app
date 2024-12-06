@@ -524,112 +524,6 @@ app.delete('/api/habits/:id', async (req, res) => {
 //   }
 // });
 
-// app.put('/api/habits/:id/complete', async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
-
-//     if (!habit) {
-//       return res.status(404).json({ error: 'Habit not found' });
-//     }
-
-//     const currentDate = new Date();
-//     const currentDateString = currentDate.toISOString().split('T')[0];
-//     const lastCompletedDates = habit.lastCompletedDates || {}; // Object to store completion dates and counts
-
-//     if (!lastCompletedDates[currentDateString]) {
-//       lastCompletedDates[currentDateString] = 0; // Initialize if not completed today
-//     }
-
-//     const frequency = habit.frequency || 1; // Default frequency to 1 if not set
-
-//     if (lastCompletedDates[currentDateString] >= frequency) {
-//       return res.status(400).json({ error: 'Habit already completed the maximum number of times today' });
-//     }
-
-//     lastCompletedDates[currentDateString] += 1;
-
-//     const result = await db.collection('habits').findOneAndUpdate(
-//       { _id: new ObjectId(id) },
-//       { 
-//         $set: { 
-//           lastCompletedDates: lastCompletedDates,
-//           streak: habit.streak + 1
-//         }
-//       },
-//       { returnDocument: 'after' }
-//     );
-
-//     if (result.value) {
-//       res.json(result.value);
-//     } else {
-//       res.status(404).json({ error: 'Habit not found' });
-//     }
-//   } catch (error) {
-//     console.error('Error completing habit:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
-
-// app.put('/api/habits/:id/complete', async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const habit = await db.collection('habits').findOne({ _id: new ObjectId(id) });
-
-//     if (!habit) {
-//       return res.status(404).json({ error: 'Habit not found' });
-//     }
-
-//     const currentDate = new Date();
-//     const completionFrequency = habit.frequency; // Assuming `frequency` is the number of times per day the habit should be completed
-
-//     // Check if today's completions are less than the frequency
-//     const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted) : null;
-
-//     // If last completed date is the same as today's date, increment completionsToday
-//     if (lastCompletedDate &&
-//         lastCompletedDate.getFullYear() === currentDate.getFullYear() &&
-//         lastCompletedDate.getMonth() === currentDate.getMonth() &&
-//         lastCompletedDate.getDate() === currentDate.getDate()) {
-
-//       if (habit.completionsToday >= completionFrequency) {
-//         return res.status(400).json({ error: 'Habit completion limit for today reached' });
-//       }
-
-//       // Increment completionsToday
-//       const result = await db.collection('habits').findOneAndUpdate(
-//         { _id: new ObjectId(id) },
-//         { 
-//           $inc: { completionsToday: 1 }, // Increment completions today
-//           $set: { lastCompleted: currentDate },
-//           $setOnInsert: { streak: habit.streak } // Keep streak intact if the habit is completed within the same day
-//         },
-//         { returnDocument: 'after' }
-//       );
-
-//       res.json(result.value);
-//     } else {
-//       // If it's a new day, reset completionsToday and start fresh
-//       const result = await db.collection('habits').findOneAndUpdate(
-//         { _id: new ObjectId(id) },
-//         { 
-//           $set: { 
-//             lastCompleted: currentDate,
-//             completionsToday: 1, // Start the count at 1 for the new day
-//             streak: habit.streak + 1 // Increment streak
-//           }
-//         },
-//         { returnDocument: 'after' }
-//       );
-
-//       res.json(result.value);
-//     }
-//   } catch (error) {
-//     console.error('Error completing habit:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
-
 app.put('/api/habits/:id/complete', async (req, res) => {
   try {
     const { id } = req.params;
@@ -640,60 +534,43 @@ app.put('/api/habits/:id/complete', async (req, res) => {
     }
 
     const currentDate = new Date();
-    const completionFrequency = habit.frequency; // Number of times per day the habit should be completed
-    const goalDays = habit.goal; // Total number of days for the habit goal
-    const totalGoal = completionFrequency * goalDays; // Total completions required for the habit goal
-    const totalCompletions = habit.totalCompletions || 0; // Track total completions
-    const completionsToday = habit.completionsToday || 0; // Track completions for today
+    const currentDateString = currentDate.toISOString().split('T')[0];
+    const completedCount = habit.completedCount || {}; // Track completions per day
 
-    // Check if today's completions are less than the frequency
-    const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted) : null;
+    if (!completedCount[currentDateString]) {
+      completedCount[currentDateString] = 0; // Initialize if not completed today
+    }
 
-    // If last completed date is the same as today's date, increment completionsToday
-    if (lastCompletedDate &&
-        lastCompletedDate.getFullYear() === currentDate.getFullYear() &&
-        lastCompletedDate.getMonth() === currentDate.getMonth() &&
-        lastCompletedDate.getDate() === currentDate.getDate()) {
+    const frequency = habit.frequency || 1; // Default frequency to 1 if not set
 
-      if (completionsToday >= completionFrequency) {
-        return res.status(400).json({ error: 'Habit completion limit for today reached' });
-      }
+    if (completedCount[currentDateString] >= frequency) {
+      return res.status(400).json({ error: 'Habit already completed the maximum number of times today' });
+    }
 
-      // Increment completionsToday and totalCompletions
-      const result = await db.collection('habits').findOneAndUpdate(
-        { _id: new ObjectId(id) },
-        { 
-          $inc: { completionsToday: 1, totalCompletions: 1 }, // Increment completions today and total completions
-          $set: { lastCompleted: currentDate },
-          $setOnInsert: { streak: habit.streak } // Keep streak intact if the habit is completed within the same day
-        },
-        { returnDocument: 'after' }
-      );
+    completedCount[currentDateString] += 1;
 
+    const result = await db.collection('habits').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          lastCompleted: currentDate,
+          completedCount: completedCount,
+          streak: habit.streak + 1
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (result.value) {
       res.json(result.value);
     } else {
-      // If it's a new day, reset completionsToday and start fresh
-      const result = await db.collection('habits').findOneAndUpdate(
-        { _id: new ObjectId(id) },
-        { 
-          $set: { 
-            lastCompleted: currentDate,
-            completionsToday: 1, // Start the count at 1 for the new day
-            streak: habit.streak + 1 // Increment streak
-          },
-          $inc: { totalCompletions: 1 } // Increment total completions
-        },
-        { returnDocument: 'after' }
-      );
-
-      res.json(result.value);
+      res.status(404).json({ error: 'Habit not found' });
     }
   } catch (error) {
     console.error('Error completing habit:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 
 app.use(express.static(path.join(__dirname, 'frontend/dist')));
