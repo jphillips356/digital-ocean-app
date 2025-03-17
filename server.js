@@ -8,12 +8,13 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-//const port = 5001;
-const port = 8080; 
+const port = 5000;
+//const port = 8080; 
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
 
 // MongoDB connection
 const url = process.env.MONGODB_URL;
@@ -123,7 +124,7 @@ app.post('/api/register', async (req, res) => {
     };
     await usersCollection.insertOne(newUser);
     
-    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `http://localhost:5000/api/verify-email?token=${verificationToken}`;
     await sendEmail(
       email,
       'Verify Your Email',
@@ -198,7 +199,7 @@ app.post('/api/registerMobile', async (req, res) => {
 
     await usersCollection.insertOne(newUser);
 
-    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `http://localhost:5000/api/verify-email?token=${verificationToken}`;
     console.log('Sending verification email to:', normalizedEmail);
     await sendEmail(
       normalizedEmail,
@@ -266,7 +267,7 @@ app.post('/api/resend-verification', async (req, res) => {
       { $set: { VerificationToken: verificationToken } }
     );
 
-    const verificationLink = `https://whale-app-ambkm.ondigitalocean.app/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `http://localhost:5000/api/verify-email?token=${verificationToken}`;
     await sendEmail(
       email,
       'Verify Your Email',
@@ -301,7 +302,7 @@ app.post('/api/forgot-password', async (req, res) => {
       { $set: { ResetToken: resetToken, ResetTokenExpiry: resetTokenExpiry } }
     );
 
-    const resetLink = `https://whale-app-ambkm.ondigitalocean.app/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:5000/reset-password?token=${resetToken}`;
     await sendEmail(
       email,
       'Password Reset Request',
